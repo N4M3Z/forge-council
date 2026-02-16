@@ -2,7 +2,7 @@
 
 Eight specialists. One unified verdict.
 
-One AI reviewing your code is a monologue — it misses the N+1 query a DBA would catch, the deployment risk an SRE would flag, the edge case a QA engineer would test for. forge-council provides eight specialist agents that review, design, and build from independent perspectives. Orchestrate them as a council or invoke any specialist standalone.
+A single AI agent is a single perspective. It gives you one take — its own — and misses everything outside its frame. forge-council provides specialist agents that work from independent perspectives: review, design, build, challenge, research. Assemble them into councils for multi-perspective verdicts, or invoke any specialist standalone.
 
 ## What it does
 
