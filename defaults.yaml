@@ -4,12 +4,25 @@
 # Model selection lives in agent frontmatter (agents/*.md).
 # To change a model, edit the agent file and re-run sync-agents.sh.
 
+agents:
+  council:
+    - Developer
+    - Database
+    - DevOps
+    - DocumentationWriter
+    - Tester
+    - SecurityArchitect
+  standalone:
+    - Opponent
+    - Researcher
+
 councils:
   developer:
     description: Multi-perspective software development council
     roles:
-      - council-dev
-      - council-db
-      - council-ops
-      - council-docs
-      - council-qa
+      - Developer
+      - Database
+      - DevOps
+      - DocumentationWriter
+      - Tester
+      - SecurityArchitect

@@ -1,4 +1,4 @@
 name: forge-council
-version: 0.1.0
-description: Multi-agent council orchestration via Claude Code agent teams. USE WHEN convening developer councils, multi-perspective reviews, or team-based problem solving.
+version: 0.2.0
+description: Eight specialist agents — five form a developer council for multi-perspective reviews, three operate standalone. Covers implementation quality, databases, DevOps, documentation, testing, security architecture, critical analysis, and research.
 events: []

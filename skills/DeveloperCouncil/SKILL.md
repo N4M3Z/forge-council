@@ -31,27 +31,28 @@ Identify the **scope** (which files/areas) and **intent** (review, design, debug
 
 ## Step 3: Select Specialists
 
-Do NOT always spawn all 5. Pick 2-4 relevant specialists based on the task:
+Do NOT always spawn all specialists. Pick 2-5 relevant specialists based on the task:
 
 | Condition | Include |
 |-----------|---------|
-| Any code changes or implementation | `council-dev` (always) |
-| Any code changes or implementation | `council-qa` (always) |
-| Database schemas, queries, migrations, ORMs | `council-db` |
-| CI/CD, deployment, infra, config, security | `council-ops` |
-| Public API surface, README, breaking changes | `council-docs` |
+| Any code changes or implementation | `Developer` (always) |
+| Any code changes or implementation | `Tester` (always) |
+| Database schemas, queries, migrations, ORMs | `Database` |
+| CI/CD, deployment, infra, config | `DevOps` |
+| Public API surface, README, breaking changes | `DocumentationWriter` |
+| Security assessment, threat modeling | `SecurityArchitect` |
 
-**Exception**: If the user says "full council" or the task is a major architecture decision, spawn all 5.
+**Exception**: If the user says "full council" or the task is a major architecture decision, spawn all 6.
 
-For lightweight tasks (single file change, small bug fix), 2 specialists (dev + qa) is enough.
+For lightweight tasks (single file change, small bug fix), 2 specialists (Developer + Tester) is enough.
 
 ## Step 4: Spawn Team
 
 1. **TeamCreate** with name `dev-council`
 2. For each selected specialist, spawn via **Task** tool:
    - `team_name: "dev-council"`
-   - `subagent_type: "council-{role}"` (e.g., `council-dev`, `council-qa`)
-   - `name: "council-{role}"` (for SendMessage addressing)
+   - `subagent_type: "{AgentName}"` (e.g., `Developer`, `Tester`, `SecurityArchitect`)
+   - `name: "council-{role}"` (e.g., `council-dev`, `council-qa` — for SendMessage addressing)
    - `mode: "bypassPermissions"` for read-only agents, `"default"` for agents with write access
    - In the prompt, provide:
      - The task description from the user
@@ -59,7 +60,7 @@ For lightweight tasks (single file change, small bug fix), 2 specialists (dev + 
      - What you want this specialist to focus on
      - Instruction to send findings back via SendMessage
 
-Example spawn prompt for council-dev:
+Example spawn prompt for Developer:
 ```
 Review the following code for implementation quality, patterns, and correctness.
 
@@ -97,6 +98,7 @@ Issues flagged by multiple specialists or with high production impact.
 **DB**: [summary of DB findings, if consulted]
 **Ops**: [summary of Ops findings, if consulted]
 **Docs**: [summary of Docs findings, if consulted]
+**Security**: [summary of Security findings, if consulted]
 
 #### Disagreements
 Where specialists had conflicting recommendations — present both sides.
@@ -114,7 +116,7 @@ After synthesis:
 
 If agent teams are not available (gate check failed), run the council sequentially:
 
-1. For each selected specialist, use the **Task** tool (without `team_name`) with `subagent_type: "council-{role}"`
+1. For each selected specialist, use the **Task** tool (without `team_name`) with `subagent_type: "{AgentName}"` (e.g., `Developer`, `Tester`)
 2. Collect each result
 3. Synthesize findings using the same verdict format from Step 6
 
@@ -123,7 +125,7 @@ This is slower but requires no experimental features.
 ## Constraints
 
 - Never spawn agents the task doesn't need — each agent is a full context window
-- Always include `council-dev` and `council-qa` for code-related tasks
+- Always include `Developer` and `Tester` for code-related tasks
 - The main session IS the lead — do not spawn a `council-lead` agent
 - Provide specific file paths and context in spawn prompts — agents don't inherit your conversation
 - If the task is trivial (typo fix, config change), skip the council and just do it — tell the user a council isn't warranted

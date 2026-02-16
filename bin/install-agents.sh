@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# install-agents.sh — Deploy council agents to ~/.claude/agents/
+# install-agents.sh — Deploy forge-council agents to ~/.claude/agents/
 #
 # For standalone forge-council installations (not using forge-core).
 # If you're using forge-core, sync-agents.sh handles this automatically.
 #
 # Usage:
-#   bin/install-agents.sh              # install all council agents
+#   bin/install-agents.sh              # install all agents
 #   bin/install-agents.sh --dry-run    # show what would be installed
-#   bin/install-agents.sh --clean      # remove council agents before reinstalling
+#   bin/install-agents.sh --clean      # remove forge-council agents before reinstalling
 
 set -euo pipefail
 
@@ -15,6 +15,18 @@ SCRIPT_DIR="$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODULE_ROOT="$(builtin cd "$SCRIPT_DIR/.." && pwd)"
 AGENTS_SRC="$MODULE_ROOT/agents"
 AGENTS_DST="${HOME}/.claude/agents"
+
+# All agents shipped by forge-council (used for --clean)
+COUNCIL_AGENTS=(
+  Developer
+  Database
+  DevOps
+  DocumentationWriter
+  Tester
+  SecurityArchitect
+  Opponent
+  Researcher
+)
 
 # Resolve forge-lib: forge-core env > local clone
 FORGE_LIB="${FORGE_LIB:-$MODULE_ROOT/lib}"
@@ -38,7 +50,7 @@ for arg in "$@"; do
     -h|--help)
       echo "Usage: install-agents.sh [--dry-run] [--clean]"
       echo "  --dry-run  Show what would be installed without writing files"
-      echo "  --clean    Remove council agents before reinstalling"
+      echo "  --clean    Remove forge-council agents before reinstalling"
       exit 0
       ;;
   esac
@@ -51,16 +63,18 @@ fi
 
 mkdir -p "$AGENTS_DST"
 
-# Clean previously installed council agents
+# Clean previously installed forge-council agents
 if $CLEAN; then
-  for f in "$AGENTS_DST"/council-*.md; do
-    [ -f "$f" ] || continue
-    if grep -q "^# synced-from:" "$f" 2>/dev/null; then
-      if [ -n "$DRY_RUN" ]; then
-        echo "[dry-run] Would remove: $(basename "$f")"
-      else
-        command rm "$f"
-        echo "Removed: $(basename "$f")"
+  for name in "${COUNCIL_AGENTS[@]}"; do
+    f="$AGENTS_DST/${name}.md"
+    if [ -f "$f" ]; then
+      if grep -q "^# synced-from:" "$f" 2>/dev/null; then
+        if [ -n "$DRY_RUN" ]; then
+          echo "[dry-run] Would remove: ${name}.md"
+        else
+          command rm "$f"
+          echo "Removed: ${name}.md"
+        fi
       fi
     fi
   done
