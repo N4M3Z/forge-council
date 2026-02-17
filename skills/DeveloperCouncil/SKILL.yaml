@@ -1,0 +1,14 @@
+name: DeveloperCouncil
+description: "Convene a developer council -- 3-round debate for code review, architecture, and debugging. USE WHEN multi-perspective code review, architecture decisions, team-based problem solving, developer council."
+argument-hint: "[task description, PR reference, file paths, or architectural question] [autonomous|interactive|quick]"
+providers:
+  claude:
+    enabled: true
+  gemini:
+    enabled: true
+    scope: user
+  codex:
+    enabled: true
+generation:
+  source: manual
+  synced-from: skills/DeveloperCouncil/SKILL.md

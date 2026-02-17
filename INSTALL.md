@@ -34,7 +34,15 @@ This checks out [forge-lib](https://github.com/N4M3Z/forge-lib) into `lib/`, pro
 make install
 ```
 
-This installs specialists to `~/.claude/agents/` (Claude Code) and `~/.gemini/agents/` (Gemini CLI), and skills to `~/.gemini/skills/`.
+This installs specialists to `~/.claude/agents/` (Claude Code) and `~/.gemini/agents/` (Gemini CLI), and installs skills for Claude, Gemini, and Codex.
+
+Provider-specific skill installs:
+
+```bash
+make install-skills-claude   # ~/.claude/skills/
+make install-skills-gemini   # ~/.gemini/skills/
+make install-skills-codex    # ~/.codex/skills/ (+ generated specialist wrappers)
+```
 
 ### 3. Enable Agent Teams (Claude Code Only)
 

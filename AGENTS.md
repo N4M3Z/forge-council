@@ -12,7 +12,10 @@ markdown files to `~/.claude/agents/`.
 ```bash
 make install            # install agents + skills
 make install-agents     # install agents only to ~/.claude/agents/
-make install-skills     # install skills only to ~/.gemini/skills/
+make install-skills     # install skills to ~/.claude/skills, ~/.gemini/skills, ~/.codex/skills
+make install-skills-claude  # install skills only to ~/.claude/skills/
+make install-skills-gemini  # install skills only to ~/.gemini/skills/
+make install-skills-codex   # install skills only to ~/.codex/skills/
 make clean              # remove previously installed agents
 make verify             # run verification checks from VERIFY.md
 
@@ -31,7 +34,7 @@ headers). Run `make verify` for a quick sanity check.
 agents/              # 13 agent definitions (12 rostered + ForensicAgent)
 bin/                 # install-agents.sh (standalone deployment)
 lib/                 # git submodule -> forge-lib (shell utilities)
-skills/              # 4 skill dirs: Council, Demo, DeveloperCouncil, ProductCouncil
+skills/              # 5 skill dirs: Council, Demo, DeveloperCouncil, ProductCouncil, KnowledgeCouncil
 defaults.yaml        # Agent roster + council composition (committed)
 config.yaml          # User overrides (gitignored, same structure as defaults)
 module.yaml          # Module metadata (name, version, description)
@@ -79,9 +82,13 @@ All agents use `sonnet` except `Opponent` which uses `opus`.
    ("communicate findings to the team lead via SendMessage when done");
    every critique must include a concrete suggestion
 
-## Skill Files (`skills/*/SKILL.md`)
+## Skill Files (`skills/*/SKILL.md` + `skills/*/SKILL.yaml`)
 
-Frontmatter requires: `name`, `description`, `argument-hint`. Body is numbered
+`SKILL.md` contains the behavior/instructions. `SKILL.yaml` contains metadata and
+provider routing (`claude`, `gemini`, `codex`).
+
+Required metadata keys in `SKILL.yaml`: `name`, `description`, `argument-hint`,
+and `providers.*.enabled` for each supported runtime. Body in `SKILL.md` is numbered
 steps (Step 1 through 7/8). All council skills follow: gate check, parse input,
 select roster, spawn team, 3 debate rounds, synthesize + teardown, sequential
 fallback. Main session IS the moderator (never spawn one). Maximum roster size 7.
@@ -102,6 +109,7 @@ fallback. Main session IS the moderator (never spawn one). Maximum roster size 7
 | `claude.model` | lowercase short form | `sonnet`, `opus` |
 | Skill directories | PascalCase | `Council/`, `DeveloperCouncil/` |
 | Skill files | Always `SKILL.md` | `skills/Council/SKILL.md` |
+| Skill metadata | Always `SKILL.yaml` | `skills/Council/SKILL.yaml` |
 | Shell functions | `lowercase_snake_case` | `fm_value`, `deploy_agent` |
 | Shell constants | `UPPER_SNAKE_CASE` | `FORGE_LIB`, `AGENTS_SRC` |
 | YAML keys | lowercase | `developer`, `generic`, `product` |
