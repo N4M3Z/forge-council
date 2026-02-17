@@ -21,9 +21,9 @@ This directory contains **forge-council**, a multi-agent orchestration framework
 ## Getting Started & Commands
 
 ### Installation
-To install the specialist agents into your local environment:
+To install the specialist agents and skills into your local environment:
 ```bash
-bash lib/install-agents.sh agents/
+make install
 ```
 *Note: If using forge-core, use `Hooks/sync-agents.sh` instead.*
 

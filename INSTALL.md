@@ -28,15 +28,13 @@ git submodule update --init
 
 This checks out [forge-lib](https://github.com/N4M3Z/forge-lib) into `lib/`, providing shared utilities for agent deployment.
 
-### 2. Deploy agents
+### 2. Deploy agents and skills
 
 ```bash
-bash lib/install-agents.sh agents/
+make install
 ```
 
-This reads agent files from `agents/` and installs them to `~/.claude/agents/`.
-
-Use `--dry-run` to preview without writing, `--clean` to remove existing forge-council agents first.
+This installs specialists to `~/.claude/agents/` and skills to `~/.gemini/skills/`.
 
 ### 3. Enable agent teams (optional)
 
@@ -125,8 +123,9 @@ Model selection lives in agent frontmatter (`agents/*.md`). To change a model, e
 ## Updating
 
 ```bash
-git pull --recurse-submodules          # update module + forge-lib
-bash lib/install-agents.sh agents/ --clean    # re-deploy agents (removes old, installs new)
+git pull --recurse-submodules    # update module + forge-lib
+make clean                      # remove old agents
+make install                    # reinstall everything
 ```
 
 ## Dependencies

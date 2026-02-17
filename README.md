@@ -204,7 +204,8 @@ Hooks/sync-agents.sh
 
 ```bash
 git clone --recurse-submodules https://github.com/N4M3Z/forge-council.git
-bash forge-council/lib/install-agents.sh forge-council/agents/
+cd forge-council
+make install
 ```
 
 Council mode uses agent teams (parallel spawning). Enable in settings:
