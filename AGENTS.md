@@ -10,20 +10,20 @@ No build system, compiler, or bundler. The only "build" is deploying agent
 markdown files to `~/.claude/agents/`.
 
 ```bash
-bash bin/install-agents.sh            # install all agents
+make install            # install agents + skills
+make install-agents     # install agents only to ~/.claude/agents/
+make install-skills     # install skills only to ~/.gemini/skills/
+make clean              # remove previously installed agents
+make verify             # run verification checks from VERIFY.md
+
+bash bin/install-agents.sh            # standalone install (no Make)
 bash bin/install-agents.sh --dry-run  # preview without writing
 bash bin/install-agents.sh --clean    # clean old agents then reinstall
 ```
 
 No automated tests, linter, or CI pipeline. Verification is manual per
-`VERIFY.md`:
-
-```bash
-ls ~/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher}.md
-grep -l "^# synced-from:" ~/.claude/agents/*.md | wc -l   # expect 12
-ls skills/*/SKILL.md                                       # expect 4
-echo "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-0}"          # 1=parallel, 0=sequential
-```
+`VERIFY.md` (check 12 agents in `~/.claude/agents/`, 4 skills, synced-from
+headers). Run `make verify` for a quick sanity check.
 
 ## Project Structure
 
@@ -31,11 +31,12 @@ echo "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-0}"          # 1=parallel, 0=seque
 agents/              # 13 agent definitions (12 rostered + ForensicAgent)
 bin/                 # install-agents.sh (standalone deployment)
 lib/                 # git submodule -> forge-lib (shell utilities)
-skills/              # 4 skill definitions (Council, Demo, DeveloperCouncil, ProductCouncil)
+skills/              # 4 skill dirs: Council, Demo, DeveloperCouncil, ProductCouncil
 defaults.yaml        # Agent roster + council composition (committed)
 config.yaml          # User overrides (gitignored, same structure as defaults)
 module.yaml          # Module metadata (name, version, description)
 .claude-plugin/      # plugin.json manifest for Claude Code
+.github/copilot-instructions.md  # Copilot rules (detailed architecture guide)
 ```
 
 ## Agent Markdown Files (`agents/*.md`)
@@ -56,7 +57,7 @@ claude.tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 ```
 
-### Tool assignments by role
+### Tool and model assignments
 
 | Tools | Agents |
 |-------|--------|
@@ -65,34 +66,25 @@ claude.tools: Read, Grep, Glob, Bash, Write, Edit
 | `Read, Grep, Glob, Bash, Write, Edit` | Developer, Tester |
 | `Read, Grep, Glob, WebSearch, WebFetch` | Researcher, ProductManager, Analyst |
 
-### Model assignments
-
 All agents use `sonnet` except `Opponent` which uses `opus`.
 
 ### Body structure (in order)
 
 1. Blockquote summary (one sentence, ends with "Shipped with forge-council.")
-2. `## Role` -- what the agent does
-3. `## Expertise` -- bullet list of domain areas
-4. `## Personality` (optional) -- only Opponent, Researcher, SecurityArchitect
-5. `## Instructions` -- detailed steps with `###` subsections
-6. `## Output Format` -- markdown template in a fenced code block
-7. `## Constraints` -- bullet list of boundaries and rules
-
-### Constraints section rules
-
-- Every agent ends with: "When working as part of a team, communicate findings
-  to the team lead via SendMessage when done"
-- Include the honesty clause: "If X is solid, say so -- don't manufacture
-  issues/objections/complexity"
-- Every critique must include a concrete suggestion
+2. `## Role`, `## Expertise`, `## Personality` (optional -- Opponent, Researcher, SecurityArchitect only)
+3. `## Instructions` -- detailed steps with `###` subsections
+4. `## Output Format` -- markdown template in a fenced code block
+5. `## Constraints` -- bullet list; must include the honesty clause ("If X is
+   solid, say so -- don't manufacture issues") and team communication clause
+   ("communicate findings to the team lead via SendMessage when done");
+   every critique must include a concrete suggestion
 
 ## Skill Files (`skills/*/SKILL.md`)
 
 Frontmatter requires: `name`, `description`, `argument-hint`. Body is numbered
 steps (Step 1 through 7/8). All council skills follow: gate check, parse input,
 select roster, spawn team, 3 debate rounds, synthesize + teardown, sequential
-fallback.
+fallback. Main session IS the moderator (never spawn one). Maximum roster size 7.
 
 | Keyword | Mode | Behavior |
 |---------|------|----------|
@@ -100,10 +92,6 @@ fallback.
 | "autonomous" | autonomous | All 3 rounds without interruption |
 | "interactive" | interactive | Pause after every round |
 | "quick" | quick | Round 1 only + synthesis |
-
-Key constraints: main session IS the moderator (never spawn one), provide full
-context in every prompt, agents must reference others by name in Round 2+,
-maximum roster size 7.
 
 ## Naming Conventions
 
@@ -116,56 +104,60 @@ maximum roster size 7.
 | Skill files | Always `SKILL.md` | `skills/Council/SKILL.md` |
 | Shell functions | `lowercase_snake_case` | `fm_value`, `deploy_agent` |
 | Shell constants | `UPPER_SNAKE_CASE` | `FORGE_LIB`, `AGENTS_SRC` |
-| YAML agent names | PascalCase | `Developer`, `ProductManager` |
-| YAML council names | lowercase | `developer`, `generic`, `product` |
+| YAML keys | lowercase | `developer`, `generic`, `product` |
 | Team names (runtime) | lowercase-kebab | `council`, `dev-council` |
 
 ## Shell Scripts
 
-### Style
-
-- Shebang: `#!/usr/bin/env bash`
-- Always start with `set -euo pipefail` (except lib scripts that are sourced)
+- Shebang: `#!/usr/bin/env bash`; start with `set -euo pipefail`
 - Resolve paths: `SCRIPT_DIR="$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`
 - Source libraries, don't execute: `source "$FORGE_LIB/frontmatter.sh"`
 - Check for required files/dirs before proceeding, `exit 1` with user-friendly message
 - Argument parsing via `for arg in "$@"; do case "$arg" in ...`
 - Local variables in functions declared with `local`
+- Functions don't exit -- let the caller decide error handling (unless fatal)
 
-### forge-lib submodule (`lib/`)
-
-Shared utilities sourced (not executed) by `bin/install-agents.sh`:
-- `frontmatter.sh` -- `fm_value file key`, `fm_body file`
-- `install-agents.sh` -- `deploy_agent`, `deploy_agents_from_dir`
-- `strip-front.sh` -- `strip_front [--keep key1,key2] file.md`
+forge-lib submodule (`lib/`) provides: `frontmatter.sh` (`fm_value`, `fm_body`),
+`install-agents.sh` (`deploy_agent`, `deploy_agents_from_dir`),
+`strip-front.sh` (`strip_front [--keep key1,key2] file.md`).
 
 ## YAML Configuration
 
-- `defaults.yaml` -- canonical roster and council composition. Do not edit
-  unless adding/removing agents from the default lineup.
+- `defaults.yaml` -- canonical roster. Edit only when adding/removing agents.
 - `config.yaml` -- user overrides (gitignored). Same structure, only changed fields.
 - `module.yaml` -- module metadata. Update `version` on releases.
-- Model selection lives in agent frontmatter, NOT in YAML config.
 - Two-space indentation, unquoted string values, PascalCase agent names.
+- Model selection lives in agent frontmatter, NOT in YAML config.
 
 ## Markdown Style
 
-- Em-dashes (`--`) used extensively in prose and descriptions (not `---`)
+- Em-dashes (`--`) in prose and descriptions (not `---`)
 - `claude.description` pattern: `"Role summary -- capabilities. USE WHEN triggers."`
-- Skill `description` pattern: `"Action -- details. USE WHEN triggers."`
-- Blockquotes for one-line summaries
-- Fenced code blocks for output format templates
+- Blockquotes for one-line summaries; fenced code blocks for output templates
 - No trailing whitespace; files end with a newline
+
+## Modification Workflows
+
+**Adding a new agent:** Create `agents/YourAgent.md` with correct frontmatter
+and structured body (Role, Expertise, Instructions, Output Format, Constraints).
+Add to `defaults.yaml` roster. Run `bash bin/install-agents.sh --dry-run` to
+test. Commit: `feat: add YourAgent for [domain]`.
+
+**Modifying a skill:** Edit `skills/SkillName/SKILL.md`. Keep step numbering
+intact. If changing roster logic, update both the skill AND `defaults.yaml`.
+Test with `/Demo` or a council invocation before committing.
+
+**Updating models or tools:** Edit agent frontmatter (`claude.model` or
+`claude.tools`), then re-deploy with `bash bin/install-agents.sh --clean`.
+Restart Claude Code for changes to take effect.
 
 ## Git Conventions
 
 Conventional Commits: `type: description`. Lowercase, no trailing period, no
-scope. Em-dashes in descriptions are fine.
+scope. Em-dashes in descriptions are fine. Types: `feat`, `fix`, `docs`.
 
 ```
 feat: add ForensicAgent for PII and secret detection
 fix: update forge-lib submodule to GitHub commit
 docs: tighten README to match forge-reflect style
 ```
-
-Types used: `feat`, `fix`, `docs`.

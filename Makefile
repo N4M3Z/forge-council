@@ -1,6 +1,6 @@
 # forge-council Makefile
 
-.PHONY: help install install-agents install-skills clean verify
+.PHONY: help install install-agents install-skills clean verify test lint check
 
 # Variables
 AGENT_SRC = agents
@@ -12,6 +12,9 @@ help:
 	@echo "  make install         Install both agents and skills"
 	@echo "  make install-agents  Install specialist agents to ~/.claude/agents/"
 	@echo "  make install-skills  Install skills to ~/.gemini/skills/"
+	@echo "  make test            Run tests"
+	@echo "  make lint            Shellcheck all scripts"
+	@echo "  make check           Verify module structure"
 	@echo "  make clean           Remove previously installed agents"
 	@echo "  make verify          Verify the installation"
 
@@ -26,6 +29,18 @@ install-skills:
 
 clean:
 	@bash $(LIB_DIR)/install-agents.sh $(AGENT_SRC) --clean
+
+test:
+	@echo "No tests defined"
+
+lint:
+	@if find . -name '*.sh' -not -path '*/target/*' | grep -q .; then \
+	  find . -name '*.sh' -not -path '*/target/*' | xargs shellcheck -S warning 2>/dev/null || true; \
+	fi
+
+check:
+	@test -f module.yaml && echo "  ok module.yaml" || echo "  MISSING module.yaml"
+	@test -d hooks && echo "  ok hooks/" || echo "  MISSING hooks/"
 
 verify:
 	@if [ -f "VERIFY.md" ]; then 

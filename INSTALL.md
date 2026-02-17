@@ -36,10 +36,11 @@ make install
 
 This installs specialists to `~/.claude/agents/` and skills to `~/.gemini/skills/`.
 
-### 3. Enable agent teams (optional)
+### 3. Enable Agent Teams (Claude Code Only)
 
-Add to `~/.claude/settings.json`:
+If you are using **Claude Code**, you can enable parallel specialist spawning. This feature is not supported in Gemini CLI.
 
+Add to your `~/.claude/settings.json`:
 ```json
 {
   "env": {
@@ -48,9 +49,16 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-Without this flag, `/DeveloperCouncil` falls back to sequential subagent calls — same specialists, same verdict, just slower. Standalone agents work without any flags.
+### 4. Running Agents in Gemini CLI
 
-### 4. Restart Claude Code
+In the Gemini CLI, sub-agents are managed and viewed using the introspect command. After running `make install`, follow these steps:
+
+1.  **Verification**: Run `/introspect` to see the current session state, including all **loaded sub-agents** (Developer, Architect, etc.).
+2.  **Usage**: To interact with a specialist standalone, you can simply refer to them by name in your query, or if a skill facilitates it, use the skill's slash command.
+3.  **Councils**: Since Gemini CLI does not support parallel `TeamCreate`, council skills (`/DeveloperCouncil`, `/Council`, etc.) will run in **Sequential Simulation Mode**. The lead agent will adopt the specialists' personas one by one to provide the multi-perspective review.
+
+### 5. Verification
+Run `/Demo agents` to verify that all 12 specialists are correctly recognized by your current CLI.
 
 Agents require a session restart to be discovered.
 
@@ -134,6 +142,8 @@ make install                    # reinstall everything
 |-----------|----------|---------|
 | forge-lib | Yes (standalone) | Shared agent deployment utilities |
 | Agent teams flag | Optional | Parallel council spawning (sequential fallback without) |
+| [safety-net](https://github.com/kenryu42/claude-code-safety-net) | Recommended | Blocks destructive commands — see [root INSTALL.md](../../INSTALL.md#recommended-security-tools) |
+| shellcheck | Recommended | `brew install shellcheck` — shell script linting |
 
 No Rust toolchain needed. No external runtime dependencies.
 
