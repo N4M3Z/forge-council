@@ -35,10 +35,14 @@ Then explain the core idea in 2-3 sentences:
 
 ## Step 3: The Roster
 
-Present the agents as a formatted table, reading each from `Modules/forge-council/agents/`:
+Present the agents as a formatted table, reading each from the agents directory:
 
 ```bash
-for f in Modules/forge-council/agents/*.md; do
+# Resolve agents directory relative to skill
+SKILL_DIR="$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+AGENTS_DIR="$(builtin cd "$SKILL_DIR/../../agents" && pwd)"
+
+for f in "$AGENTS_DIR"/*.md; do
   name=$(grep "^claude.name:" "$f" | head -1 | awk -F': ' '{print $2}')
   model=$(grep "^claude.model:" "$f" | head -1 | awk -F': ' '{print $2}')
   desc=$(grep "^claude.description:" "$f" | head -1 | sed 's/^claude.description: *//' | sed 's/"//g' | cut -d'—' -f1)
@@ -148,6 +152,8 @@ Ready to try it?
     Task tool → subagent_type: "Architect"
     Task tool → subagent_type: "Opponent"
     Task tool → subagent_type: "ProductManager"
+
+> **Gemini CLI Note**: In the Gemini CLI, standalone specialists are invoked directly using `@AgentName` (e.g., `@Architect`, `@Opponent`).
 ```
 
 ## Constraints

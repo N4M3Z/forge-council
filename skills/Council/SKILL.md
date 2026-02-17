@@ -160,6 +160,8 @@ After synthesis:
 
 If agent teams are not available:
 
+> **Gemini CLI Note**: In the Gemini CLI, the `Task` tool is replaced by direct `@`-invocation. Instead of spawning a task, invoke the specialist directly in your prompt using `@AgentName` (e.g., `Hey @Architect, please review...`). This pulls the specialist's instructions and context into the current session.
+
 1. **Round 1**: For each roster member, use **Task** tool (no `team_name`) with `subagent_type: "{AgentName}"`. Collect results.
 2. **[Checkpoint]**: Present positions, ask user (same as Step 5).
 3. **Round 2**: For each, spawn new Task with Round 1 transcript + Round 2 instruction.
