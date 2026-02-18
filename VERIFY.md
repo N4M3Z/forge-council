@@ -49,6 +49,13 @@ grep "^model:" .gemini/agents/Developer.md
 ls .gemini/agents/ | grep -i "^Council" || echo "Clean — no stale Council agents"
 ```
 
+## No misnamed config
+
+```bash
+# config.yml is not supported -- must be config.yaml
+test ! -f config.yml || echo "FAIL: Rename config.yml to config.yaml"
+```
+
 ## Skill discovery
 
 ```bash

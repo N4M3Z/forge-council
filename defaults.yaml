@@ -1,5 +1,5 @@
 # forge-council default configuration.
-# Override: create config.yaml (gitignored) with only the fields you want to change.
+# Override: create config.yaml (gitignored). Must use .yaml extension, not .yml.
 #
 # defaults.yaml is authoritative for model tier and tools. Agent frontmatter provides the baseline.
 # To change a model, edit the agent file and re-run sync-agents.sh.
