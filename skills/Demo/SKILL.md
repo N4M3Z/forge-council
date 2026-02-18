@@ -55,33 +55,33 @@ Format as:
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  DEVELOPER COUNCIL (/DeveloperCouncil)                  │
-├──────────────────────┬────────┬─────────────────────────┤
-│ Developer            │ sonnet │ Implementation quality   │
-│ Database             │ sonnet │ Schema & query perf      │
-│ DevOps               │ sonnet │ CI/CD & deployment       │
-│ DocumentationWriter  │ sonnet │ README & API docs        │
-│ Tester               │ sonnet │ Coverage & edge cases    │
-│ SecurityArchitect    │ sonnet │ Threat modeling          │
-├──────────────────────┴────────┴─────────────────────────┤
+├──────────────────────┬──────────────────────────────────┤
+│ Developer            │ Implementation quality           │
+│ Database             │ Schema & query perf              │
+│ DevOps               │ CI/CD & deployment               │
+│ DocumentationWriter  │ README & API docs                │
+│ Tester               │ Coverage & edge cases            │
+│ SecurityArchitect    │ Threat modeling                  │
+├──────────────────────┴──────────────────────────────────┤
 │  GENERIC COUNCIL (/Council)                             │
-├──────────────────────┬────────┬─────────────────────────┤
-│ Architect            │ sonnet │ System design            │
-│ Designer             │ sonnet │ UX & user needs          │
-│ Developer            │ sonnet │ Implementation reality   │
-│ Researcher           │ sonnet │ Data & precedent         │
-├──────────────────────┴────────┴─────────────────────────┤
+├──────────────────────┬──────────────────────────────────┤
+│ Architect            │ System design                    │
+│ Designer             │ UX & user needs                  │
+│ Developer            │ Implementation reality           │
+│ Researcher           │ Data & precedent                 │
+├──────────────────────┴──────────────────────────────────┤
 │  PRODUCT COUNCIL (/ProductCouncil)                      │
-├──────────────────────┬────────┬─────────────────────────┤
-│ ProductManager       │ sonnet │ Requirements & roadmap   │
-│ Designer             │ sonnet │ UX & user needs          │
-│ Developer            │ sonnet │ Tech feasibility         │
-│ Analyst              │ sonnet │ Metrics & impact         │
-├──────────────────────┴────────┴─────────────────────────┤
+├──────────────────────┬──────────────────────────────────┤
+│ ProductManager       │ Requirements & roadmap           │
+│ Designer             │ UX & user needs                  │
+│ Developer            │ Tech feasibility                 │
+│ Analyst              │ Metrics & impact                 │
+├──────────────────────┴──────────────────────────────────┤
 │  STANDALONE SPECIALISTS                                 │
-├──────────────────────┬────────┬─────────────────────────┤
-│ Opponent             │ opus   │ Devil's advocate         │
-│ Researcher           │ sonnet │ Deep web research        │
-└──────────────────────┴────────┴─────────────────────────┘
+├──────────────────────┬──────────────────────────────────┤
+│ Opponent             │ Devil's advocate (strong tier)   │
+│ Researcher           │ Deep web research                │
+└──────────────────────┴──────────────────────────────────┘
 ```
 
 ## Step 4: Council Flow Demo

@@ -50,3 +50,52 @@ councils:
       - DocumentationWriter
       - Architect
       - Researcher
+
+# Model Tiers - mappings for semantic tiers
+models:
+  fast: sonnet
+  strong: opus
+
+# Agent configurations: model tier and tools
+Developer:
+  model: fast
+  tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
+Database:
+  model: fast
+  tools: Read, Grep, Glob, Bash
+DevOps:
+  model: fast
+  tools: Read, Grep, Glob, Bash
+DocumentationWriter:
+  model: fast
+  tools: Read, Grep, Glob
+Tester:
+  model: fast
+  tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
+SecurityArchitect:
+  model: strong
+  tools: Read, Grep, Glob, Bash, WebSearch
+Architect:
+  model: fast
+  tools: Read, Grep, Glob
+Designer:
+  model: fast
+  tools: Read, Grep, Glob
+ProductManager:
+  model: fast
+  tools: Read, Grep, Glob, WebSearch, WebFetch
+Analyst:
+  model: fast
+  tools: Read, Grep, Glob, WebSearch, WebFetch
+Opponent:
+  model: strong
+  tools: Read, Grep, Glob
+Researcher:
+  model: fast
+  tools: Read, Grep, Glob, WebSearch, WebFetch
+ForensicAgent:
+  model: strong
+  tools: Read, Grep, Glob, Bash, WebSearch
+
+# Skill configurations: scope overrides
+# (Currently empty, defaulting to workspace)

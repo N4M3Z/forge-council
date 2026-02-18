@@ -6,7 +6,6 @@ providers:
     enabled: true
   gemini:
     enabled: true
-    scope: user
   codex:
     enabled: true
 generation:
