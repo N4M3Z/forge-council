@@ -53,7 +53,7 @@ Provider-specific skill installs:
 ```bash
 make install-skills-claude   # ~/.claude/skills/
 make install-skills-gemini   # ~/.gemini/skills/ (uses SCOPE)
-make install-skills-codex    # ~/.codex/skills/ (+ generated specialist wrappers)
+make install-skills-codex    # ~/.codex/skills/ (native council skills)
 ```
 
 ### 3. Enable Agent Teams (Claude Code Only)

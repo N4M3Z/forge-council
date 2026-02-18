@@ -52,6 +52,14 @@ ls skills/*/SKILL.md
 # Should list: Council, Demo, DeveloperCouncil, ProductCouncil, KnowledgeCouncil
 ```
 
+## Codex skills
+
+```bash
+ls ~/.codex/skills/{Council,Demo,DeveloperCouncil,ProductCouncil,KnowledgeCouncil}/SKILL.md
+```
+
+Expected: all 5 council skills present after `make install-skills-codex`.
+
 ## Agent teams (optional)
 
 ```bash
@@ -76,4 +84,5 @@ Should display the full roster with all 13 agents and their correctly resolved m
 - No orphaned `Council*` agent files
 - Agent names match filenames (PascalCase)
 - 5 skills discoverable (Council, Demo, DeveloperCouncil, ProductCouncil, KnowledgeCouncil)
+- Codex has 5 council skills installed by default
 - `/Demo` renders the agent roster without errors

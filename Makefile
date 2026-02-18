@@ -19,7 +19,7 @@ help:
 	@echo "  make install-skills        Install skills for Claude, Gemini, and Codex"
 	@echo "  make install-skills-claude Install skills to ~/.claude/skills/"
 	@echo "  make install-skills-gemini Install skills via gemini CLI (uses SCOPE)"
-	@echo "  make install-skills-codex  Install skills to ~/.codex/skills/ (includes generated specialist wrappers)"
+	@echo "  make install-skills-codex  Install native council skills to ~/.codex/skills/"
 	@echo "  make verify-skills         Verify skills for Claude, Gemini, and Codex"
 	@echo "  make clean                 Remove previously installed agents"
 	@echo "  make verify                Verify the installation"
@@ -51,7 +51,7 @@ install-skills-gemini: ensure-lib
 	@bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider gemini --scope "$(SCOPE)"
 
 install-skills-codex: ensure-lib
-	@bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider codex --dst "$(CODEX_SKILLS_DST)" --include-agent-wrappers --agents-dir "$(AGENT_SRC)"
+	@bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider codex --dst "$(CODEX_SKILLS_DST)"
 
 clean: ensure-lib
 	@bash $(LIB_DIR)/install-agents.sh $(AGENT_SRC) --clean
@@ -74,7 +74,18 @@ verify-skills-claude:
 verify-skills-gemini:
 	@if command -v gemini >/dev/null 2>&1; then \
 	  echo "Verifying Gemini skills via CLI..."; \
-	  gemini skills list | grep -E "Council|Demo|DeveloperCouncil|ProductCouncil|KnowledgeCouncil"; \
+	  out_file=$$(mktemp); \
+	  if gemini skills list > "$$out_file" 2>&1; then \
+	    grep -E "Council|Demo|DeveloperCouncil|ProductCouncil|KnowledgeCouncil" "$$out_file"; \
+	  else \
+	    if [ "$${GEMINI_VERIFY_STRICT:-0}" = "1" ]; then \
+	      cat "$$out_file"; \
+	      rm -f "$$out_file"; \
+	      exit 1; \
+	    fi; \
+	    echo "  skip gemini skill verification (non-interactive or unauthenticated)"; \
+	  fi; \
+	  rm -f "$$out_file"; \
 	else \
 	  echo "  skip gemini skill verification (gemini CLI not installed)"; \
 	fi
@@ -82,7 +93,7 @@ verify-skills-gemini:
 verify-skills-codex:
 	@echo "Verifying Codex skills in $(CODEX_SKILLS_DST)..."
 	@missing=0; \
-	for s in Council Demo DeveloperCouncil ProductCouncil KnowledgeCouncil Developer Database DevOps DocumentationWriter Tester SecurityArchitect Architect Designer ProductManager Analyst Opponent Researcher ForensicAgent; do \
+	for s in Council Demo DeveloperCouncil ProductCouncil KnowledgeCouncil; do \
 	  if test -f "$(CODEX_SKILLS_DST)/$$s/SKILL.md"; then \
 	    echo "  ok $$s"; \
 	  else \
@@ -92,12 +103,17 @@ verify-skills-codex:
 	done; \
 	test $$missing -eq 0
 
+
 test:
 	@echo "No tests defined"
 
 lint:
 	@if find . -name '*.sh' -not -path '*/target/*' | grep -q .; then \
-	  find . -name '*.sh' -not -path '*/target/*' | xargs shellcheck -S warning 2>/dev/null || true; \
+	  if ! command -v shellcheck >/dev/null 2>&1; then \
+	    echo "shellcheck not installed (install with: brew install shellcheck)"; \
+	    exit 1; \
+	  fi; \
+	  find . -name '*.sh' -not -path '*/target/*' -print0 | xargs -0 shellcheck -S warning; \
 	fi
 
 check:
@@ -106,10 +122,25 @@ check:
 verify: verify-skills
 	@if [ -f "VERIFY.md" ]; then \
 	  echo "Running verification checks (as defined in VERIFY.md)..."; \
-	  echo "Checking Claude agents..."; \
-	  ls $(HOME)/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
-	  echo "Checking Gemini agents..."; \
-	  ls $(HOME)/.gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	  if [ "$(SCOPE)" = "workspace" ]; then \
+	    echo "Checking workspace Gemini agents..."; \
+	    ls .gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	  elif [ "$(SCOPE)" = "user" ]; then \
+	    echo "Checking user Claude agents..."; \
+	    ls $(HOME)/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    echo "Checking user Gemini agents..."; \
+	    ls $(HOME)/.gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	  elif [ "$(SCOPE)" = "all" ]; then \
+	    echo "Checking workspace Gemini agents..."; \
+	    ls .gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    echo "Checking user Claude agents..."; \
+	    ls $(HOME)/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    echo "Checking user Gemini agents..."; \
+	    ls $(HOME)/.gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	  else \
+	    echo "Invalid SCOPE: $(SCOPE)"; \
+	    exit 1; \
+	  fi; \
 	else \
 	  echo "VERIFY.md not found."; \
 	fi

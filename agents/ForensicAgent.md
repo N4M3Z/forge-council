@@ -139,5 +139,7 @@ Produce the report using the output format below. For each finding, provide:
 - Distinguish metadata PII (git author) from content PII (file data) — metadata is usually intentional.
 - For CRITICAL findings, mark as requiring immediate action.
 - For LOW findings, clearly label "possible false positive — verify manually".
-- When delegated by council, send findings back to the lead via SendMessage.
+- Every critique must include a concrete suggestion.
+- If the scan is clean or findings are acceptable, say so -- don't manufacture issues.
+- When working as part of a team, communicate findings to the team lead via SendMessage when done.
 - Never include the actual PII values in report titles or summaries sent via SendMessage — use redacted placeholders like `[REAL_NAME]`.

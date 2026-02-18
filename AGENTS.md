@@ -15,7 +15,7 @@ make install-agents     # install agents to ~/.claude/agents/ and ~/.gemini/agen
 make install-skills     # install skills to ~/.claude/skills, ~/.gemini/skills, ~/.codex/skills
 make install-skills-claude  # install skills only to ~/.claude/skills/
 make install-skills-gemini  # install skills only to ~/.gemini/skills/
-make install-skills-codex   # install skills to ~/.codex/skills/ (+ generated specialist wrappers)
+make install-skills-codex   # install native council skills to ~/.codex/skills/
 make verify-skills      # verify skills across Claude, Gemini, Codex
 make clean              # remove previously installed agents
 make verify             # run verification checks from VERIFY.md
@@ -149,13 +149,14 @@ fallback. Main session IS the moderator (never spawn one). Maximum roster size 7
 forge-lib submodule (`lib/`) provides: `frontmatter.sh` (`fm_value`, `fm_body`),
 `install-agents.sh` (`deploy_agent`, `deploy_agents_from_dir`),
 `install-skills.sh` (provider-aware skill installer),
-`generate-agent-skills.sh` (generated specialist wrapper skills for Codex),
+`generate-agent-skills.sh` (specialist wrapper generation helper, not used by default install flow),
 `strip-front.sh` (`strip_front [--keep key1,key2] file.md`).
 
 ## YAML Configuration
 
 - `defaults.yaml` -- canonical roster. Edit only when adding/removing agents.
 - `config.yaml` -- user overrides (gitignored). Same structure, only changed fields.
+- Sidecar behavior is implemented via `defaults.yaml` + `config.yaml`.
 - `module.yaml` -- module metadata. Update `version` on releases.
 - Two-space indentation, unquoted string values, PascalCase agent names.
 - Model selection lives in agent frontmatter, NOT in YAML config.

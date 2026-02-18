@@ -42,6 +42,7 @@ make install                 # sync rosters, then install agents + skills (SCOPE
 make sync                    # sync council rosters from defaults.yaml to SKILL.md
 make install-agents          # install agent artifacts (uses SCOPE)
 make install-skills          # install skills for Claude, Gemini, and Codex (uses SCOPE for Gemini)
+make install-skills-codex    # install native council skills to ~/.codex/skills/
 make verify                  # run verification checks (13 agents)
 ```
 
@@ -323,6 +324,31 @@ Only whitelisted models are included in the generated agent frontmatter for each
 
 ### Specialist Tool Overrides (Sidecars)
 
+Sidecar behavior is implemented through `defaults.yaml` (committed defaults) and optional `config.yaml` (local overrides, gitignored).
+
+Use `config.yaml` to override per-agent model tiers/tools without editing agent markdown:
+
+```yaml
+Developer:
+  model: strong
+  tools: Read, Grep, Glob, Bash, Write, Edit
+
+Tester:
+  tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+    - Write
+    - Edit
+```
+
+After changing overrides, reinstall agents:
+
+```bash
+make install-agents SCOPE=workspace
+```
+
 ## Architecture
 
 Thirteen markdown agent files, five skills, and deployment utilities in forge-lib.
@@ -351,7 +377,7 @@ skills/
 lib/
   install-agents.sh       # Agent deployment utility (from forge-lib)
   install-skills.sh       # Multi-runtime skill installer (from forge-lib)
-  generate-agent-skills.sh # Specialist wrapper skill generation (from forge-lib)
+  generate-agent-skills.sh # Specialist wrapper generation helper (not used by default install flow)
 defaults.yaml             # Agent roster + council composition
 module.yaml               # Module metadata
 ```
