@@ -1,6 +1,6 @@
 # forge-council Makefile
 
-.PHONY: help sync install install-agents install-skills install-skills-claude install-skills-gemini install-skills-codex clean verify verify-skills verify-skills-claude verify-skills-gemini verify-skills-codex test lint check
+.PHONY: help install install-agents install-skills install-skills-claude install-skills-gemini install-skills-codex clean verify verify-skills verify-skills-claude verify-skills-gemini verify-skills-codex test lint check
 
 # Variables
 AGENT_SRC = agents
@@ -11,10 +11,13 @@ CLAUDE_SKILLS_DST ?= $(if $(filter workspace,$(SCOPE)),$(CURDIR)/.claude/skills,
 GEMINI_SKILLS_DST ?= $(HOME)/.gemini/skills
 CODEX_SKILLS_DST ?= $(if $(filter workspace,$(SCOPE)),$(CURDIR)/.codex/skills,$(HOME)/.codex/skills)
 
+# Rust binaries from forge-lib submodule
+INSTALL_AGENTS := $(LIB_DIR)/bin/install-agents
+INSTALL_SKILLS := $(LIB_DIR)/bin/install-skills
+
 help:
 	@echo "forge-council management commands:"
 	@echo "  make install               Install both agents and skills (SCOPE=workspace|user|all, default: workspace)"
-	@echo "  make sync                  Sync council rosters from defaults.yaml to skills/"
 	@echo "  make install-agents        Install specialist agents (workspace: ./.claude + ./.gemini + ./.codex, user: ~/.claude + ~/.gemini + ~/.codex)"
 	@echo "  make install-skills        Install skills for Claude, Gemini, and Codex"
 	@echo "  make install-skills-claude Install skills via SCOPE (workspace/user/all)"
@@ -27,54 +30,49 @@ help:
 	@echo "  make lint                  Shellcheck all scripts"
 	@echo "  make check                 Verify module structure"
 
-ensure-lib:
-	@if [ ! -f "$(LIB_DIR)/install-agents.sh" ]; then \
-		echo "Initializing submodules..."; \
-		git submodule update --init --recursive; \
-	fi
+# Ensure forge-lib binaries are built before install targets
+$(INSTALL_AGENTS) $(INSTALL_SKILLS):
+	@$(MAKE) -C $(LIB_DIR) build
 
-sync: ensure-lib
-	@bash $(LIB_DIR)/sync-rosters.sh defaults.yaml
-
-install: sync install-agents install-skills
+install: install-agents install-skills
 	@echo "Installation complete. Restart your session or reload agents/skills."
 
-install-agents: ensure-lib
-	@bash $(LIB_DIR)/install-agents.sh $(AGENT_SRC) --scope "$(SCOPE)"
+install-agents: $(INSTALL_AGENTS)
+	@$(INSTALL_AGENTS) $(AGENT_SRC) --scope "$(SCOPE)"
 
 install-skills: install-skills-claude install-skills-gemini install-skills-codex
 
-install-skills-claude: ensure-lib
+install-skills-claude: $(INSTALL_SKILLS)
 	@if [ "$(SCOPE)" = "all" ]; then \
-	  bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider claude --scope "$(SCOPE)" --dst "$(CURDIR)/.claude/skills"; \
-	  bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider claude --scope "$(SCOPE)" --dst "$(HOME)/.claude/skills"; \
+	  $(INSTALL_SKILLS) $(SKILL_SRC) --provider claude --scope "$(SCOPE)" --dst "$(CURDIR)/.claude/skills"; \
+	  $(INSTALL_SKILLS) $(SKILL_SRC) --provider claude --scope "$(SCOPE)" --dst "$(HOME)/.claude/skills"; \
 	elif [ "$(SCOPE)" = "workspace" ]; then \
-	  bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider claude --scope "$(SCOPE)" --dst "$(CURDIR)/.claude/skills"; \
+	  $(INSTALL_SKILLS) $(SKILL_SRC) --provider claude --scope "$(SCOPE)" --dst "$(CURDIR)/.claude/skills"; \
 	elif [ "$(SCOPE)" = "user" ]; then \
-	  bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider claude --scope "$(SCOPE)" --dst "$(HOME)/.claude/skills"; \
+	  $(INSTALL_SKILLS) $(SKILL_SRC) --provider claude --scope "$(SCOPE)" --dst "$(HOME)/.claude/skills"; \
 	else \
 	  echo "Error: Invalid SCOPE '$(SCOPE)'. Use workspace, user, or all."; \
 	  exit 1; \
 	fi
 
-install-skills-gemini: ensure-lib
-	@bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider gemini --scope "$(SCOPE)"
+install-skills-gemini: $(INSTALL_SKILLS)
+	@$(INSTALL_SKILLS) $(SKILL_SRC) --provider gemini --scope "$(SCOPE)"
 
-install-skills-codex: ensure-lib
+install-skills-codex: $(INSTALL_SKILLS)
 	@if [ "$(SCOPE)" = "all" ]; then \
-	  bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider codex --scope "$(SCOPE)" --dst "$(CURDIR)/.codex/skills"; \
-	  bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider codex --scope "$(SCOPE)" --dst "$(HOME)/.codex/skills"; \
+	  $(INSTALL_SKILLS) $(SKILL_SRC) --provider codex --scope "$(SCOPE)" --dst "$(CURDIR)/.codex/skills"; \
+	  $(INSTALL_SKILLS) $(SKILL_SRC) --provider codex --scope "$(SCOPE)" --dst "$(HOME)/.codex/skills"; \
 	elif [ "$(SCOPE)" = "workspace" ]; then \
-	  bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider codex --scope "$(SCOPE)" --dst "$(CURDIR)/.codex/skills"; \
+	  $(INSTALL_SKILLS) $(SKILL_SRC) --provider codex --scope "$(SCOPE)" --dst "$(CURDIR)/.codex/skills"; \
 	elif [ "$(SCOPE)" = "user" ]; then \
-	  bash $(LIB_DIR)/install-skills.sh $(SKILL_SRC) --provider codex --scope "$(SCOPE)" --dst "$(HOME)/.codex/skills"; \
+	  $(INSTALL_SKILLS) $(SKILL_SRC) --provider codex --scope "$(SCOPE)" --dst "$(HOME)/.codex/skills"; \
 	else \
 	  echo "Error: Invalid SCOPE '$(SCOPE)'. Use workspace, user, or all."; \
 	  exit 1; \
 	fi
 
-clean: ensure-lib
-	@bash $(LIB_DIR)/install-agents.sh $(AGENT_SRC) --clean
+clean: $(INSTALL_AGENTS)
+	@$(INSTALL_AGENTS) $(AGENT_SRC) --clean
 
 verify-skills: verify-skills-claude verify-skills-gemini verify-skills-codex
 
@@ -151,8 +149,7 @@ verify-skills-codex:
 	fi; \
 	test $$missing -eq 0
 
-
-test: ensure-lib
+test:
 	@MODULE_ROOT="$(CURDIR)" bash $(LIB_DIR)/tests/test-module-structure.sh
 	@MODULE_ROOT="$(CURDIR)" bash $(LIB_DIR)/tests/test-agent-frontmatter.sh
 	@MODULE_ROOT="$(CURDIR)" bash $(LIB_DIR)/tests/test-defaults-consistency.sh
@@ -160,16 +157,18 @@ test: ensure-lib
 	@MODULE_ROOT="$(CURDIR)" bash $(LIB_DIR)/tests/test-deploy-parity.sh
 
 lint:
-	@if find . -name '*.sh' -not -path '*/target/*' | grep -q .; then \
+	@if find . -name '*.sh' -not -path '*/target/*' -not -path '*/lib/*' | grep -q .; then \
 	  if ! command -v shellcheck >/dev/null 2>&1; then \
 	    echo "shellcheck not installed (install with: brew install shellcheck)"; \
 	    exit 1; \
 	  fi; \
-	  find . -name '*.sh' -not -path '*/target/*' -print0 | xargs -0 shellcheck -S warning; \
+	  find . -name '*.sh' -not -path '*/target/*' -not -path '*/lib/*' -print0 | xargs -0 shellcheck -S warning; \
 	fi
 
 check:
 	@test -f module.yaml && echo "  ok module.yaml" || echo "  MISSING module.yaml"
+	@test -x "$(INSTALL_AGENTS)" && echo "  ok install-agents" || echo "  MISSING install-agents (run: make -C $(LIB_DIR) build)"
+	@test -x "$(INSTALL_SKILLS)" && echo "  ok install-skills" || echo "  MISSING install-skills (run: make -C $(LIB_DIR) build)"
 
 verify: verify-skills
 	@if [ -f "VERIFY.md" ]; then \
