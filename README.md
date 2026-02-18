@@ -31,7 +31,7 @@ Task: Researcher — "Best practices for rate limiting in distributed systems"
 Task: SecurityArchitect — "Threat model our authentication system"
 ```
 
-> **Note**: `make install` defaults to `SCOPE=workspace`. To install globally for your user, use `make install SCOPE=user`.
+> **Note**: `make install` defaults to `SCOPE=workspace` and installs into local `./.claude`, `./.gemini`, and `./.codex`. To install globally for your user, use `make install SCOPE=user`.
 
 ## Makefile Commands
 
@@ -41,8 +41,8 @@ Primary commands:
 make install                 # sync rosters, then install agents + skills (SCOPE=workspace|user|all)
 make sync                    # sync council rosters from defaults.yaml to SKILL.md
 make install-agents          # install agent artifacts (uses SCOPE)
-make install-skills          # install skills for Claude, Gemini, and Codex (uses SCOPE for Gemini)
-make install-skills-codex    # install native council skills to ~/.codex/skills/
+make install-skills          # install skills for Claude, Gemini, and Codex (uses SCOPE)
+make install-skills-codex    # install native council skills (uses SCOPE)
 make verify                  # run verification checks (13 agents)
 ```
 
@@ -174,6 +174,14 @@ Task: Opponent — "We should rewrite the backend in Rust"
 Task: Researcher — "Best practices for rate limiting in distributed systems"
 Task: SecurityArchitect — "Threat model our authentication system"
 ```
+
+## Codex Sub-Agents
+
+In Codex, specialists are used via **explicit sub-agent invocation**. They are not auto-selected just because they are installed.
+
+- Use direct invocation style: `Task: Developer — [request]`
+- Use council skills when you want multi-agent debate: `/Council`, `/DeveloperCouncil`, `/ProductCouncil`, `/KnowledgeCouncil`
+- If you do not ask for a specialist/sub-agent, the main session handles the request alone
 
 ## The debate
 

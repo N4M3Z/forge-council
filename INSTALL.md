@@ -34,7 +34,10 @@ This checks out [forge-lib](https://github.com/N4M3Z/forge-lib) into `lib/`, pro
 make install
 ```
 
-By default, this installs agents and skills into the local project directory (`.gemini/agents/` and `.gemini/skills/`) for use in the current workspace (`SCOPE=workspace`).
+By default, this installs agents and skills into the local project directory for use in the current workspace (`SCOPE=workspace`):
+
+- Agents: `.claude/agents/`, `.gemini/agents/`, `.codex/agents/`
+- Skills: `.claude/skills/`, `.gemini/skills/`, `.codex/skills/`
 
 To install globally for your user (available in all projects):
 
@@ -42,7 +45,7 @@ To install globally for your user (available in all projects):
 make install SCOPE=user
 ```
 
-This installs specialists to `~/.claude/agents/` (Claude Code) and `~/.gemini/agents/` (Gemini CLI), and installs skills for Claude and Gemini.
+This installs specialists to `~/.claude/agents/`, `~/.gemini/agents/`, and `~/.codex/agents`, and installs skills for Claude, Gemini, and Codex.
 
 Use `SCOPE=all` to target both workspace and user home directories.
 
@@ -51,12 +54,20 @@ The Makefile automatically initializes and updates the `lib/` submodule if requi
 Provider-specific skill installs:
 
 ```bash
-make install-skills-claude   # ~/.claude/skills/
+make install-skills-claude   # ./.claude/skills/ (SCOPE=workspace) or ~/.claude/skills/ (SCOPE=user|all)
 make install-skills-gemini   # ~/.gemini/skills/ (uses SCOPE)
-make install-skills-codex    # ~/.codex/skills/ (native council skills)
+make install-skills-codex    # ./.codex/skills/ (SCOPE=workspace) or ~/.codex/skills/ (SCOPE=user|all)
 ```
 
-### 3. Enable Agent Teams (Claude Code Only)
+### 3. Running Agents in Codex
+
+In Codex, installed specialists are available as sub-agents, but they must be invoked explicitly.
+
+- Standalone specialist: `Task: Developer — [request]`
+- Council orchestration: `/Council`, `/DeveloperCouncil`, `/ProductCouncil`, `/KnowledgeCouncil`
+- If you do not explicitly ask for a specialist/sub-agent, the main session handles the task directly.
+
+### 4. Enable Agent Teams (Claude Code Only)
 
 If you are using **Claude Code**, you can enable parallel specialist spawning. This feature is not supported in Gemini CLI.
 
@@ -69,7 +80,7 @@ Add to your `~/.claude/settings.json`:
 }
 ```
 
-### 4. Running Agents in Gemini CLI
+### 5. Running Agents in Gemini CLI
 
 In the Gemini CLI, sub-agents are an experimental feature and must be enabled in your configuration.
 
@@ -90,7 +101,7 @@ Once enabled, follow these steps to use your specialists:
 3.  **Usage**: To launch a specialist standalone, use `/agents run <name> [query]`. You can also invoke councils via their slash commands (e.g., `/DeveloperCouncil` or `/Demo`).
 4.  **Councils**: Since Gemini CLI does not support parallel `TeamCreate`, council skills will run in **Sequential Simulation Mode**, where the lead agent adopts the specialists' personas one by one.
 
-### 5. Verification
+### 6. Verification
 Run `/Demo agents` to verify that all 12 specialists are correctly recognized by your current CLI.
 
 Agents require a session restart to be discovered.
@@ -113,7 +124,7 @@ Agents require a session restart to be discovered.
 | Researcher | fast | standalone | Deep web research, multi-query synthesis, citations |
 | ForensicAgent | strong | standalone | PII and secret detection forensic specialist |
 
-No compiled binaries — forge-council is pure markdown orchestration. Agents are markdown files deployed to `~/.claude/agents/` (if `SCOPE=user` or `all`) or `.gemini/agents/` (if `SCOPE=workspace` or `all`).
+No compiled binaries — forge-council is pure markdown orchestration. Agents are markdown files deployed by scope across `.claude/.gemini/.codex` (workspace) and/or `~/.claude/~/.gemini/~/.codex` (user/all).
 
 ## Configuration
 

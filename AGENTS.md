@@ -7,15 +7,16 @@
 ## Build / Install / Verify
 
 No build system, compiler, or bundler. The only "build" is deploying agent
-markdown files to `~/.claude/agents/`.
+markdown files via `SCOPE` to provider directories (`.claude/.gemini/.codex`
+for workspace, `~/.claude/~/.gemini/~/.codex` for user installs).
 
 ```bash
 make install            # install agents + skills
-make install-agents     # install agents to ~/.claude/agents/ and ~/.gemini/agents/
-make install-skills     # install skills to ~/.claude/skills, ~/.gemini/skills, ~/.codex/skills
-make install-skills-claude  # install skills only to ~/.claude/skills/
+make install-agents     # install agents using SCOPE (workspace|user|all) across Claude/Gemini/Codex
+make install-skills     # install skills using SCOPE across Claude/Gemini/Codex
+make install-skills-claude  # install Claude skills using SCOPE
 make install-skills-gemini  # install skills only to ~/.gemini/skills/
-make install-skills-codex   # install native council skills to ~/.codex/skills/
+make install-skills-codex   # install Codex council skills using SCOPE
 make verify-skills      # verify skills across Claude, Gemini, Codex
 make clean              # remove previously installed agents
 make verify             # run verification checks from VERIFY.md
@@ -49,6 +50,8 @@ codex features list
 
 Note: one-off CLI overrides (`--enable` / `--disable`) can temporarily override
 saved config values for that run.
+
+For Codex, specialists are used as **explicit sub-agents**. Installing agents/skills does not auto-run them. Invoke them directly in prompts (for example: `Task: Developer — [request]`, `Task: SecurityArchitect — [request]`) or through the council skills.
 
 ## Project Structure
 

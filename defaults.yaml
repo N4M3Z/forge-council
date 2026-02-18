@@ -116,4 +116,13 @@ ForensicAgent:
   tools: Read, Grep, Glob, Bash, WebSearch
 
 # Skill configurations: scope overrides
-# (Currently empty, defaulting to workspace)
+Council:
+  scope: workspace
+Demo:
+  scope: workspace
+DeveloperCouncil:
+  scope: workspace
+ProductCouncil:
+  scope: workspace
+KnowledgeCouncil:
+  scope: workspace

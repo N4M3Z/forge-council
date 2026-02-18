@@ -7,12 +7,14 @@
 ### Global (user)
 ```bash
 ls ~/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
+ls ~/.codex/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
 ```
 (Only if installed with `SCOPE=user` or `SCOPE=all`)
 
 ### Local (workspace)
 ```bash
 ls .gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
+ls .codex/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
 ```
 (Default for `make install`)
 
@@ -55,10 +57,10 @@ ls skills/*/SKILL.md
 ## Codex skills
 
 ```bash
-ls ~/.codex/skills/{Council,Demo,DeveloperCouncil,ProductCouncil,KnowledgeCouncil}/SKILL.md
+ls .codex/skills/{Council,Demo,DeveloperCouncil,ProductCouncil,KnowledgeCouncil}/SKILL.md
 ```
 
-Expected: all 5 council skills present after `make install-skills-codex`.
+Expected: all 5 council skills present after `make install-skills-codex` (workspace mode).
 
 ## Agent teams (optional)
 
@@ -77,6 +79,8 @@ Invoke the demo to verify agents load correctly:
 ```
 
 Should display the full roster with all 13 agents and their correctly resolved models.
+
+For Codex specialist usage, explicitly invoke sub-agents (for example `Task: Developer — [request]`) or use council skills.
 
 ## Expected results
 
