@@ -1,23 +1,23 @@
 ---
-name: KnowledgeCouncil
+name: DebateCouncil
 version: 0.1.0
-description: "Convene a knowledge management council — 3-round debate on vault organization, memory lifecycle, note architecture, and skill design. USE WHEN knowledge triage, memory promotion, vault organization, note lifecycle, idea graduation, archive decisions."
-argument-hint: "[topic or question to debate] [with vault|with dev|with opponent] [autonomous|interactive|quick]"
+description: "Convene a PAI-style council — 3-round debate where specialists challenge each other. USE WHEN multi-perspective discussion, architecture debate, strategy decisions, cross-domain analysis."
+argument-hint: "[topic or question to debate] [with security|with opponent|with docs] [autonomous|interactive|quick]"
 ---
 
 @AgentTeams.md
 
 
-# KnowledgeCouncil
+# DebateCouncil
 
-You are the **moderator** of a knowledge management council. Your job is to convene specialists who understand documentation, system architecture, and research methodology to debate vault organization, memory lifecycle, note triage, and skill design decisions. Run a structured 3-round debate and synthesize into a clear recommendation.
+You are the **moderator** of a council debate. Your job is to convene diverse specialists, run a structured 3-round debate where they respond to each other's points, and synthesize the discussion into a clear recommendation.
 
 ## Step 1: Parse Input
 
 Extract from the user's input:
 
-1. **Topic**: The knowledge management question to debate
-2. **Optional extras**: "with vault" → add VaultOrganizer, "with dev" → add SoftwareDeveloper, "with opponent" → add TheOpponent
+1. **Topic**: The question or subject to debate
+2. **Optional extras**: "with security" → add SecurityArchitect, "with opponent" → add TheOpponent, "with docs" → add DocumentationWriter
 3. **Mode**: Detected from keywords (default if none specified):
 
 | Keyword | Mode | Behavior |
@@ -29,40 +29,27 @@ Extract from the user's input:
 
 ## Step 2: Select Roster
 
-**Default (always)**: DocumentationWriter, SystemArchitect, WebResearcher
+**Default (always)**: SystemArchitect, UxDesigner, SoftwareDeveloper, WebResearcher
 
 **Optional extras** (added when requested or clearly relevant):
 
 | Condition | Add |
 |-----------|-----|
-| "with vault", vault structure/organization topics | VaultOrganizer |
-| "with dev", implementation/tooling topics | SoftwareDeveloper |
-| "with opponent", high-stakes decision, major restructure | TheOpponent |
-
-VaultOrganizer is a Task subagent type — only include it if the runtime supports it. If spawning fails, proceed with the default roster.
-
-### Perspective Guide
-
-Each specialist brings a distinct lens to knowledge management:
-
-- **DocumentationWriter**: Note structure, naming conventions, self-documenting organization, progressive information architecture. Asks: "Can someone find and understand this without context?"
-- **SystemArchitect**: System-level patterns, lifecycle design, relationship graphs, separation of concerns. Asks: "Does this scale? Does it compose? Where are the boundaries?"
-- **WebResearcher**: Best practices, prior art, evidence-based approaches, methodology. Asks: "What does the literature say? What have others tried?"
-- **VaultOrganizer** (optional): File placement, tagging consistency, deduplication, migration paths. Asks: "Is this in the right place? Are there duplicates? What's the migration plan?"
-- **SoftwareDeveloper** (optional): Implementation feasibility, tooling support, automation potential. Asks: "Can we build this? What breaks?"
-- **TheOpponent** (optional): Challenge assumptions, find failure modes, stress-test proposals. Asks: "What if this is wrong? What's the worst case?"
+| "with security", auth/data/compliance topics | SecurityArchitect |
+| "with opponent", high-stakes decision, major pivot | TheOpponent |
+| "with docs", public-facing, API, documentation | DocumentationWriter |
 
 ## Step 3: Spawn Team
 
-1. **TeamCreate** with name `knowledge-council`
+1. **TeamCreate** with name `council`
 2. For each roster member, spawn via **Task** tool:
-   - `team_name: "knowledge-council"`
-   - `subagent_type: "{AgentName}"` (e.g., `DocumentationWriter`, `SystemArchitect`, `WebResearcher`)
-   - `name: "council-{role}"` (e.g., `council-docs`, `council-arch`, `council-research`)
+   - `team_name: "council"`
+   - `subagent_type: "{AgentName}"` (e.g., `SystemArchitect`, `UxDesigner`, `SoftwareDeveloper`, `WebResearcher`)
+   - `name: "council-{role}"` (e.g., `council-arch`, `council-design`, `council-dev`, `council-research`)
    - `mode: "bypassPermissions"`
    - Prompt includes:
      - The topic/question
-     - Their specific perspective to bring (from the Perspective Guide)
+     - Their specific perspective to bring
      - Round 1 instruction: "Give your initial position on this topic from your specialist perspective. 50-150 words. Be specific and direct."
      - Instruction to send findings via SendMessage
 
@@ -79,8 +66,9 @@ Collect all specialist positions via SendMessage. Wait for all to report.
 ```
 ### Round 1: Initial Positions
 
-**DocumentationWriter**: [position summary]
 **SystemArchitect**: [position summary]
+**UxDesigner**: [position summary]
+**SoftwareDeveloper**: [position summary]
 **WebResearcher**: [position summary]
 ```
 
@@ -133,7 +121,7 @@ Collect all Round 3 responses.
 Produce the final verdict:
 
 ```markdown
-### Knowledge Council: [Topic]
+### Council Debate: [Topic]
 
 **Roster**: [who participated]
 **Rounds**: [how many completed]
@@ -167,13 +155,15 @@ After synthesis:
 
 If agent teams are not available:
 
+> **Gemini CLI Note**: In the Gemini CLI, the `Task` tool is replaced by direct `@`-invocation. Instead of spawning a task, invoke the specialist directly in your prompt using `@AgentName` (e.g., `Hey @SystemArchitect, please review...`). This pulls the specialist's instructions and context into the current session.
+
 1. **Round 1**: For each roster member, use **Task** tool (no `team_name`) with `subagent_type: "{AgentName}"`. Collect results.
 2. **[Checkpoint]**: Present positions, ask user (same as Step 4).
 3. **Round 2**: For each, spawn new Task with Round 1 transcript + Round 2 instruction.
 4. **Round 3**: For each, spawn new Task with Round 1+2 transcript + Round 3 instruction.
 5. Synthesize using the same verdict format.
 
-Each round's Tasks can run in parallel. Total: 3 rounds x N agents as separate Task calls.
+Each round's Tasks can run in parallel. Total: 3 rounds × N agents as separate Task calls.
 
 ## Constraints
 
@@ -181,5 +171,4 @@ Each round's Tasks can run in parallel. Total: 3 rounds x N agents as separate T
 - Provide full context in every prompt — agents don't inherit conversation or previous rounds
 - In Round 2+, agents MUST reference other specialists by name — generic responses should be flagged
 - If the topic is trivial or has an obvious answer, skip the council and just answer — tell the user a debate isn't warranted
-- Maximum roster size: 6 (3 default + 3 optional). More voices doesn't mean better debate.
-- VaultOrganizer may not be available in all runtimes — gracefully degrade if spawning fails
+- Maximum roster size: 7 (4 default + 3 optional). More voices doesn't mean better debate.

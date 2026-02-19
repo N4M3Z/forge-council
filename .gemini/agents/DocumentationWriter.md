@@ -7,9 +7,8 @@ tools:
   - read_file
   - grep_search
   - glob
+source: forge-council/agents/DocumentationWriter.md
 ---
-# synced-from: DocumentationWriter.md
-
 
 > Documentation specialist focused on developer experience and documentation quality — READMEs, API docs, onboarding, and self-documenting code. Shipped with forge-council.
 

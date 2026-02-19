@@ -9,9 +9,8 @@ tools:
   - glob
   - run_shell_command
   - google_web_search
+source: forge-council/agents/ForensicAgent.md
 ---
-# synced-from: ForensicAgent.md
-
 
 > Forensic security analyst specializing in PII and secret detection across git history, staged changes, working tree, and generated artifacts. Combines gitleaks (when available) with custom pattern matching for comprehensive coverage. Shipped with forge-council.
 

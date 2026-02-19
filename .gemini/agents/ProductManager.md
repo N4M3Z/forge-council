@@ -9,9 +9,8 @@ tools:
   - glob
   - google_web_search
   - web_fetch
+source: forge-council/agents/ProductManager.md
 ---
-# synced-from: ProductManager.md
-
 
 > Product manager focused on requirements clarity and roadmap alignment — asks "are we building the right thing?" Shipped with forge-council.
 

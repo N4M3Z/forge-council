@@ -1,23 +1,18 @@
 ---
 name: ProductCouncil
+version: 0.1.0
 description: "Convene a product council — multi-agent review of requirements, features, and product strategy. USE WHEN requirements review, feature scoping, product decisions, go/no-go, payments review."
 argument-hint: "[requirements doc, feature spec, product question, or strategy decision] [autonomous|interactive|quick]"
 ---
+
+@AgentTeams.md
+
 
 # Product Council
 
 You are the **team lead** of a product council. Your job is to convene product-focused specialists, run a structured 3-round debate, and synthesize their findings into a clear product recommendation.
 
-## Step 1: Gate Check
-
-```bash
-echo "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-0}"
-```
-
-- If `1`: use agent teams (TeamCreate + parallel Task spawning)
-- If `0` or missing: fall back to sequential mode (see Step 8)
-
-## Step 2: Parse Input
+## Step 1: Parse Input
 
 The user's input describes what to review. It can be:
 - **Requirements review**: "review these requirements for X"
@@ -36,26 +31,26 @@ Detect **mode** from keywords:
 | "interactive", "step by step" | interactive | Pause after every round |
 | "quick", "quick check" | quick | Round 1 only + synthesis |
 
-## Step 3: Select Specialists
+## Step 2: Select Specialists
 
-**Default (always)**: ProductManager, Designer, Developer, Analyst
+**Default (always)**: ProductManager, UxDesigner, SoftwareDeveloper, DataAnalyst
 
 **Optional** (added when requested or clearly relevant):
 
 | Condition | Add |
 |-----------|-----|
 | Security, compliance, PCI, payments regulations | SecurityArchitect |
-| Market research, competitive analysis needed | Researcher |
-| High-stakes decision, challenge assumptions | Opponent |
+| Market research, competitive analysis needed | WebResearcher |
+| High-stakes decision, challenge assumptions | TheOpponent |
 
-## Step 4: Spawn Team
+## Step 3: Spawn Team
 
 1. **TeamCreate** with name `product-council`
 2. For each selected specialist, spawn via **Task** tool:
    - `team_name: "product-council"`
-   - `subagent_type: "{AgentName}"` (e.g., `ProductManager`, `Designer`, `Developer`, `Analyst`)
+   - `subagent_type: "{AgentName}"` (e.g., `ProductManager`, `UxDesigner`, `SoftwareDeveloper`, `DataAnalyst`)
    - `name: "council-{role}"` (e.g., `council-pm`, `council-design`, `council-dev`, `council-analyst`)
-   - `mode: "bypassPermissions"` for read-only agents, `"default"` for Developer
+   - `mode: "bypassPermissions"` for read-only agents, `"default"` for SoftwareDeveloper
    - Prompt includes:
      - The requirements/feature/decision from user input
      - Their specific focus area
@@ -64,11 +59,11 @@ Detect **mode** from keywords:
 
 3. **TaskCreate** for each specialist
 
-## Step 5: Round 1 — Initial Assessments
+## Step 4: Round 1 — Initial Assessments
 
 Collect all specialist assessments. Wait for all to report.
 
-**If quick mode**: Skip to Step 7.
+**If quick mode**: Skip to Step 6.
 
 **If checkpoint or interactive mode**: Present Round 1 to the user:
 
@@ -76,16 +71,16 @@ Collect all specialist assessments. Wait for all to report.
 ### Round 1: Initial Assessments
 
 **Product Manager**: [assessment]
-**Designer**: [assessment]
-**Developer**: [assessment]
-**Analyst**: [assessment]
+**UxDesigner**: [assessment]
+**SoftwareDeveloper**: [assessment]
+**DataAnalyst**: [assessment]
 ```
 
 Ask via **AskUserQuestion**:
 - Question: "Round 1 assessments above. Any context, constraints, or questions to address before debate?"
 - Options: "Continue to debate", "Add context (free text)", "Skip to synthesis"
 
-## Step 6: Rounds 2 & 3 — Debate
+## Step 5: Rounds 2 & 3 — Debate
 
 ### Round 2: Cross-Perspective Challenges
 
@@ -123,7 +118,7 @@ ROUND 3 INSTRUCTION: Given the full discussion, identify:
 
 Collect all Round 3 responses.
 
-## Step 7: Synthesize and Teardown
+## Step 6: Synthesize and Teardown
 
 Produce the product verdict:
 
@@ -156,14 +151,14 @@ After synthesis:
 1. Send **shutdown_request** to each teammate
 2. **TeamDelete** to clean up
 
-## Step 8: Sequential Fallback
+## Step 7: Sequential Fallback
 
 If agent teams are not available:
 
 > **Gemini CLI Note**: In the Gemini CLI, the `Task` tool is replaced by direct `@`-invocation. Instead of spawning a task, invoke the specialist directly in your prompt using `@AgentName` (e.g., `Hey @ProductManager, please review...`). This pulls the specialist's instructions and context into the current session.
 
 1. **Round 1**: For each specialist, use **Task** tool (no `team_name`) with `subagent_type: "{AgentName}"`. Collect results.
-2. **[Checkpoint]**: Present assessments, ask user (same as Step 5).
+2. **[Checkpoint]**: Present assessments, ask user (same as Step 4).
 3. **Round 2**: For each, spawn new Task with Round 1 transcript + Round 2 instruction.
 4. **Round 3**: For each, spawn new Task with Round 1+2 transcript + Round 3 instruction.
 5. Synthesize using the same verdict format.
