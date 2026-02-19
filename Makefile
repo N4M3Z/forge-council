@@ -1,11 +1,11 @@
 # forge-council Makefile
 
-.PHONY: help install install-agents install-skills install-skills-claude install-skills-gemini install-skills-codex clean verify verify-skills verify-skills-claude verify-skills-gemini verify-skills-codex test lint check
+.PHONY: help install install-agents install-skills install-skills-claude install-skills-gemini install-skills-codex install-teams-config clean verify verify-skills verify-skills-claude verify-skills-gemini verify-skills-codex test lint check
 
 # Variables
 AGENT_SRC = agents
 SKILL_SRC = skills
-LIB_DIR = lib
+LIB_DIR = $(or $(FORGE_LIB),lib)
 SCOPE ?= workspace
 CLAUDE_SKILLS_DST ?= $(if $(filter workspace,$(SCOPE)),$(CURDIR)/.claude/skills,$(HOME)/.claude/skills)
 GEMINI_SKILLS_DST ?= $(HOME)/.gemini/skills
@@ -35,7 +35,7 @@ help:
 $(INSTALL_AGENTS) $(INSTALL_SKILLS):
 	@$(MAKE) -C $(LIB_DIR) build
 
-install: install-agents install-skills
+install: install-agents install-skills install-teams-config
 	@echo "Installation complete. Restart your session or reload agents/skills."
 
 install-agents: $(INSTALL_AGENTS)
@@ -72,6 +72,27 @@ install-skills-codex: $(INSTALL_SKILLS)
 	  exit 1; \
 	fi
 
+install-teams-config: install-skills-claude
+	@teams=$$(awk '/^teams:/ { sub("^teams: *",""); gsub(/[[:space:]]+/, ""); print; exit }' \
+	  $$(if [ -f config.yaml ]; then echo config.yaml; else echo defaults.yaml; fi)); \
+	teams=$${teams:-disabled}; \
+	if [ "$$teams" = "enabled" ]; then \
+	  for dst in "$(CURDIR)/.claude/skills" "$(HOME)/.claude/skills"; do \
+	    for skill in DebateCouncil DeveloperCouncil ProductCouncil KnowledgeCouncil; do \
+	      sf="$$dst/$$skill/SKILL.md"; \
+	      if [ -f "$$sf" ]; then \
+	        if ! grep -q '@AgentTeams.md' "$$sf"; then \
+	          awk 'BEGIN{n=0} /^---$$/{n++; print; if(n==2){print ""; print "@AgentTeams.md"; print ""} next} {print}' "$$sf" > "$$sf.tmp" && \
+	          command mv "$$sf.tmp" "$$sf"; \
+	        fi; \
+	        echo "  $$skill: @AgentTeams.md"; \
+	      fi; \
+	    done; \
+	  done; \
+	else \
+	  echo "  teams=disabled (no @AgentTeams.md injection)"; \
+	fi
+
 clean: $(INSTALL_AGENTS)
 	@$(INSTALL_AGENTS) $(AGENT_SRC) --clean
 
@@ -82,7 +103,7 @@ verify-skills-claude:
 	if [ "$(SCOPE)" = "all" ]; then \
 	  for dst in "$(CURDIR)/.claude/skills" "$(HOME)/.claude/skills"; do \
 	    echo "Verifying Claude skills in $$dst..."; \
-	    for s in Council Demo DeveloperCouncil ProductCouncil KnowledgeCouncil; do \
+	    for s in DebateCouncil Demo DeveloperCouncil ProductCouncil KnowledgeCouncil; do \
 	      if test -f "$$dst/$$s/SKILL.md"; then \
 	        echo "  ok $$s"; \
 	      else \
@@ -93,7 +114,7 @@ verify-skills-claude:
 	  done; \
 	else \
 	  echo "Verifying Claude skills in $(CLAUDE_SKILLS_DST)..."; \
-	  for s in Council Demo DeveloperCouncil ProductCouncil KnowledgeCouncil; do \
+	  for s in DebateCouncil Demo DeveloperCouncil ProductCouncil KnowledgeCouncil; do \
 	    if test -f "$(CLAUDE_SKILLS_DST)/$$s/SKILL.md"; then \
 	      echo "  ok $$s"; \
 	    else \
@@ -128,7 +149,7 @@ verify-skills-codex:
 	if [ "$(SCOPE)" = "all" ]; then \
 	  for dst in "$(CURDIR)/.codex/skills" "$(HOME)/.codex/skills"; do \
 	    echo "Verifying Codex skills in $$dst..."; \
-	    for s in Council Demo DeveloperCouncil ProductCouncil KnowledgeCouncil; do \
+	    for s in DebateCouncil Demo DeveloperCouncil ProductCouncil KnowledgeCouncil; do \
 	      if test -f "$$dst/$$s/SKILL.md"; then \
 	        echo "  ok $$s"; \
 	      else \
@@ -139,7 +160,7 @@ verify-skills-codex:
 	  done; \
 	else \
 	  echo "Verifying Codex skills in $(CODEX_SKILLS_DST)..."; \
-	  for s in Council Demo DeveloperCouncil ProductCouncil KnowledgeCouncil; do \
+	  for s in DebateCouncil Demo DeveloperCouncil ProductCouncil KnowledgeCouncil; do \
 	    if test -f "$(CODEX_SKILLS_DST)/$$s/SKILL.md"; then \
 	      echo "  ok $$s"; \
 	    else \
@@ -173,27 +194,27 @@ verify: verify-skills
 	  echo "Running verification checks (as defined in VERIFY.md)..."; \
 	  if [ "$(SCOPE)" = "workspace" ]; then \
 	    echo "Checking workspace Gemini agents..."; \
-	    ls .gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    ls .gemini/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md; \
 	    echo "Checking workspace Codex agents..."; \
-	    ls .codex/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    ls .codex/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md; \
 	  elif [ "$(SCOPE)" = "user" ]; then \
 	    echo "Checking user Claude agents..."; \
-	    ls $(HOME)/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    ls $(HOME)/.claude/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md; \
 	    echo "Checking user Gemini agents..."; \
-	    ls $(HOME)/.gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    ls $(HOME)/.gemini/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md; \
 	    echo "Checking user Codex agents..."; \
-	    ls $(HOME)/.codex/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    ls $(HOME)/.codex/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md; \
 	  elif [ "$(SCOPE)" = "all" ]; then \
 	    echo "Checking workspace Gemini agents..."; \
-	    ls .gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    ls .gemini/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md; \
 	    echo "Checking workspace Codex agents..."; \
-	    ls .codex/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    ls .codex/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md; \
 	    echo "Checking user Claude agents..."; \
-	    ls $(HOME)/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    ls $(HOME)/.claude/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md; \
 	    echo "Checking user Gemini agents..."; \
-	    ls $(HOME)/.gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    ls $(HOME)/.gemini/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md; \
 	    echo "Checking user Codex agents..."; \
-	    ls $(HOME)/.codex/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md; \
+	    ls $(HOME)/.codex/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md; \
 	  else \
 	    echo "Invalid SCOPE: $(SCOPE)"; \
 	    exit 1; \
