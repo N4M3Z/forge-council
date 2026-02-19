@@ -40,9 +40,11 @@ Primary commands:
 ```bash
 make install                 # install agents + skills + teams config (SCOPE=workspace|user|all)
 make install-agents          # install agent artifacts (uses SCOPE)
+make install-codex-agent-config # Codex compatibility post-processing (forge-lib Rust binary)
 make install-skills          # install skills for Claude, Gemini, and Codex (uses SCOPE)
 make install-skills-codex    # install native council skills (uses SCOPE)
 make verify                  # run verification checks (13 agents)
+make verify-codex-agent-config # verify Codex role TOML/config artifacts (uses SCOPE)
 ```
 
 ## What it does
@@ -179,6 +181,8 @@ In Codex, specialists are used via **explicit sub-agent invocation**. They are n
 - Use direct invocation style: `Task: SoftwareDeveloper — [request]`
 - Use council skills when you want multi-agent debate: `/DebateCouncil`, `/DeveloperCouncil`, `/ProductCouncil`, `/KnowledgeCouncil`
 - If you do not ask for a specialist/sub-agent, the main session handles the request alone
+- Installation also runs Codex compatibility post-processing that generates per-agent role files (`agents/*.toml`) and injects role entries into `.codex/config.toml` (or `~/.codex/config.toml` for `SCOPE=user`).
+- This post-processing is implemented by `lib/bin/install-codex-agent-config` from the forge-lib submodule.
 
 ## The debate
 

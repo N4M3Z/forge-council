@@ -1,6 +1,6 @@
 # forge-council Makefile
 
-.PHONY: help install install-agents install-skills install-skills-claude install-skills-gemini install-skills-codex install-skills-opencode install-teams-config clean verify verify-skills verify-skills-claude verify-skills-gemini verify-skills-codex verify-skills-opencode verify-agents test lint check lib-init
+.PHONY: help install install-agents install-skills install-skills-claude install-skills-gemini install-skills-codex install-skills-opencode install-codex-agent-config install-teams-config clean verify verify-skills verify-skills-claude verify-skills-gemini verify-skills-codex verify-skills-opencode verify-agents verify-codex-agent-config test lint check lib-init
 
 # Variables
 AGENTS = SoftwareDeveloper DatabaseEngineer DevOpsEngineer DocumentationWriter QaTester SecurityArchitect SystemArchitect UxDesigner ProductManager DataAnalyst TheOpponent WebResearcher ForensicAgent
@@ -17,11 +17,13 @@ OPENCODE_SKILLS_DST ?= $(if $(filter workspace,$(SCOPE)),$(CURDIR)/.opencode/ski
 INSTALL_AGENTS := $(LIB_DIR)/bin/install-agents
 INSTALL_SKILLS := $(LIB_DIR)/bin/install-skills
 VALIDATE_MODULE := $(LIB_DIR)/bin/validate-module
+INSTALL_CODEX_AGENT_CONFIG := $(LIB_DIR)/bin/install-codex-agent-config
 
 help:
 	@echo "forge-council management commands:"
 	@echo "  make install                Install agents + skills for all providers (SCOPE=workspace|user|all, default: workspace)"
 	@echo "  make install-agents         Install specialist agents"
+	@echo "  make install-codex-agent-config Codex compatibility post-processing (generates role TOML/config block)"
 	@echo "  make install-skills         Install skills for Claude, Gemini, Codex, and OpenCode"
 	@echo "  make install-skills-claude  Install skills via SCOPE (workspace/user/all)"
 	@echo "  make install-skills-gemini  Install skills via gemini CLI (uses SCOPE)"
@@ -43,14 +45,30 @@ lib-init:
 	fi
 
 # Ensure forge-lib binaries are built before install targets
-$(INSTALL_AGENTS) $(INSTALL_SKILLS) $(VALIDATE_MODULE): lib-init
+$(INSTALL_AGENTS) $(INSTALL_SKILLS) $(VALIDATE_MODULE) $(INSTALL_CODEX_AGENT_CONFIG): lib-init
 	@$(MAKE) -C $(LIB_DIR) build
 
-install: install-agents install-skills install-teams-config
+install: install-agents install-codex-agent-config install-skills install-teams-config
 	@echo "Installation complete. Restart your session or reload agents/skills."
 
 install-agents: $(INSTALL_AGENTS)
 	@$(INSTALL_AGENTS) $(AGENT_SRC) --scope "$(SCOPE)"
+
+install-codex-agent-config: $(INSTALL_CODEX_AGENT_CONFIG)
+	@ \
+	if [ "$(SCOPE)" = "all" ]; then \
+	  codex_roots="$(CURDIR)/.codex $(HOME)/.codex"; \
+	elif [ "$(SCOPE)" = "workspace" ]; then \
+	  codex_roots="$(CURDIR)/.codex"; \
+	elif [ "$(SCOPE)" = "user" ]; then \
+	  codex_roots="$(HOME)/.codex"; \
+	else \
+	  echo "Error: Invalid SCOPE '$(SCOPE)'. Use workspace, user, or all."; \
+	  exit 1; \
+	fi; \
+	for codex_root in $$codex_roots; do \
+	  $(INSTALL_CODEX_AGENT_CONFIG) "$$codex_root" --module-root "$(CURDIR)"; \
+	done
 
 install-skills: install-skills-claude install-skills-gemini install-skills-codex install-skills-opencode
 
@@ -144,7 +162,7 @@ install-teams-config: install-skills-claude
 clean: $(INSTALL_AGENTS)
 	@$(INSTALL_AGENTS) $(AGENT_SRC) --clean
 
-verify: verify-skills verify-agents
+verify: verify-skills verify-agents verify-codex-agent-config
 
 verify-skills: verify-skills-claude verify-skills-gemini verify-skills-codex verify-skills-opencode
 
@@ -263,6 +281,37 @@ verify-agents:
 	fi; \
 	test $$missing -eq 0
 
+verify-codex-agent-config:
+	@missing=0; \
+	if [ "$(SCOPE)" = "all" ]; then \
+	  dirs="$(CURDIR)/.codex/agents $(HOME)/.codex/agents"; \
+	elif [ "$(SCOPE)" = "workspace" ]; then \
+	  dirs="$(CURDIR)/.codex/agents"; \
+	elif [ "$(SCOPE)" = "user" ]; then \
+	  dirs="$(HOME)/.codex/agents"; \
+	else \
+	  echo "Invalid SCOPE: $(SCOPE)"; exit 1; \
+	fi; \
+	for dir in $$dirs; do \
+	  echo "Verifying Codex role config in $$dir..."; \
+	  cfg="$$(dirname "$$dir")/config.toml"; \
+	  if [ -f "$$cfg" ] && grep -q "BEGIN forge-council agents" "$$cfg"; then \
+	    echo "  ok codex config marker"; \
+	  else \
+	    echo "  missing codex config marker in $$cfg"; \
+	    missing=1; \
+	  fi; \
+	  for a in $(AGENTS); do \
+	    if [ -f "$$dir/$$a.toml" ] && grep -q "prompt_file = \"$$a.md\"" "$$dir/$$a.toml"; then \
+	      echo "  ok $$a role config"; \
+	    else \
+	      echo "  missing $$a role config"; \
+	      missing=1; \
+	    fi; \
+	  done; \
+	done; \
+	test $$missing -eq 0
+
 test: $(VALIDATE_MODULE)
 	@$(VALIDATE_MODULE) $(CURDIR)
 
@@ -280,3 +329,4 @@ check:
 	@test -x "$(INSTALL_AGENTS)" && echo "  ok install-agents" || echo "  MISSING install-agents (run: make -C $(LIB_DIR) build)"
 	@test -x "$(INSTALL_SKILLS)" && echo "  ok install-skills" || echo "  MISSING install-skills (run: make -C $(LIB_DIR) build)"
 	@test -x "$(VALIDATE_MODULE)" && echo "  ok validate-module" || echo "  MISSING validate-module (run: make -C $(LIB_DIR) build)"
+	@test -x "$(INSTALL_CODEX_AGENT_CONFIG)" && echo "  ok install-codex-agent-config" || echo "  MISSING install-codex-agent-config (run: make -C $(LIB_DIR) build)"

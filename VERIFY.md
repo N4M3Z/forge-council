@@ -64,6 +64,16 @@ ls .codex/skills/{DebateCouncil,Demo,DeveloperCouncil,ProductCouncil,KnowledgeCo
 
 Expected: all 5 council skills present after `make install-skills-codex` (workspace mode).
 
+## Codex role config
+
+```bash
+ls .codex/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.toml
+grep -n 'prompt_file = "DataAnalyst.md"' .codex/agents/DataAnalyst.toml
+grep -n "BEGIN forge-council agents" .codex/config.toml
+```
+
+Expected: all Codex role TOML files present after `make install-codex-agent-config` (or `make install`), `prompt_file` points to the deployed agent markdown file, and `.codex/config.toml` contains the forge-council role block markers.
+
 ## Agent teams (optional)
 
 ```bash
