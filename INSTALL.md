@@ -58,7 +58,16 @@ make install-skills-claude    # ./.claude/skills/ (SCOPE=workspace) or ~/.claude
 make install-skills-gemini    # via gemini CLI (skipped if CLI not installed)
 make install-skills-codex     # ./.codex/skills/ (SCOPE=workspace) or ~/.codex/skills/ (SCOPE=user|all)
 make install-skills-opencode  # ./.opencode/skills/ with kebab-case names (SCOPE=workspace|user|all)
+make install-codex-agent-config # Codex compatibility post-processing and .codex/config.toml update (uses SCOPE)
 ```
+
+Codex install also generates:
+- `agents/<Agent>.toml` (model + model_reasoning_effort + prompt_file)
+- `agents/<Agent>.prompt.md` (agent prompt body)
+- `agents/forge-council-agents.toml` (role manifest merged into `config.toml`)
+
+`config.yaml` overrides are respected for Codex model selection (provider tiers and per-agent model tier), with fallback to `defaults.yaml`.
+Current implementation is intentionally in `scripts/install-agents-codex.sh` as a temporary readable fallback; target architecture is migration into forge-lib Rust libraries.
 
 ### 3. Running Agents in Codex
 

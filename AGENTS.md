@@ -13,11 +13,13 @@ for workspace, `~/.claude/~/.gemini/~/.codex` for user installs).
 ```bash
 make install            # install agents + skills
 make install-agents     # install agents using SCOPE (workspace|user|all) across Claude/Gemini/Codex
+make install-codex-agent-config  # Codex compatibility post-processing (temporary Bash implementation) using SCOPE
 make install-skills     # install skills using SCOPE across Claude/Gemini/Codex
 make install-skills-claude  # install Claude skills using SCOPE
 make install-skills-gemini  # install skills only to ~/.gemini/skills/
 make install-skills-codex   # install Codex council skills using SCOPE
 make verify-skills      # verify skills across Claude, Gemini, and Codex
+make verify-codex-agent-config  # verify Codex role TOML/config artifacts
 make clean              # remove previously installed agents
 make verify             # run verification checks from VERIFY.md
 
@@ -36,14 +38,14 @@ Codex `/experimental` toggles persist in `~/.codex/config.toml` under
 
 ```toml
 [features]
-collab = true
+multi_agent = true
 apps = true
 ```
 
 Use CLI helpers to manage persistent state:
 
 ```bash
-codex features enable collab
+codex features enable multi_agent
 codex features enable apps
 codex features list
 ```
@@ -52,8 +54,12 @@ Note: one-off CLI overrides (`--enable` / `--disable`) can temporarily override
 saved config values for that run.
 
 For Codex, specialists are used as **explicit sub-agents**. Installing agents/skills does not auto-run them. Invoke them directly in prompts (for example: `Task: SoftwareDeveloper — [request]`, `Task: SecurityArchitect — [request]`) or through the council skills.
+Codex install flow also generates role config artifacts in `.codex/agents` (`*.toml`, `*.prompt.md`, `forge-council-agents.toml`) and injects a managed block into `.codex/config.toml` (or `~/.codex/config.toml` for `SCOPE=user`).
+Current post-processing implementation is intentionally in `scripts/install-agents-codex.sh` for readability; long-term plan is migration into forge-lib Rust installers.
 
 ## Project Structure
+
+FIXME: Up-to-date documentation is in CLAUDE.md. In case of conflict consult CLAUDE.md instead.
 
 ```
 agents/              # 13 agent definitions (12 rostered + ForensicAgent)

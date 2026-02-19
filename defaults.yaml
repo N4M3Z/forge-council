@@ -116,10 +116,13 @@ providers:
 
     codex:
         models:
-            - claude-opus-4-6
-            - claude-sonnet-4-6
-        fast: claude-sonnet-4-6
-        strong: claude-opus-4-6
+            - gpt-5.3-codex
+            - gpt-5.2-codex
+            - gpt-5.1-codex-max
+            - gpt-5.2
+            - gpt-5.1-codex-mini
+        fast: gpt-5.1-codex-mini
+        strong: gpt-5.3-codex
 
     opencode:
         models:

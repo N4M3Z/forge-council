@@ -1,0 +1,237 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Provisional Codex compatibility post-processing.
+# This script intentionally lives in Bash for readability and rapid iteration.
+# Long-term target: move this logic into forge-lib Rust binaries.
+
+SCRIPT_DIR="$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(builtin cd "$SCRIPT_DIR/.." && pwd)"
+AGENTS_DIR="$ROOT_DIR/agents"
+DEFAULTS_FILE="$ROOT_DIR/defaults.yaml"
+
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+  echo "Usage: $0 <codex-dir> [config-file]" >&2
+  echo "Example: $0 .codex defaults.yaml" >&2
+  exit 1
+fi
+
+CODEX_DIR="$1"
+CONFIG_FILE="${2:-$ROOT_DIR/defaults.yaml}"
+CODEX_AGENTS_DIR="$CODEX_DIR/agents"
+MANIFEST_FILE="$CODEX_AGENTS_DIR/forge-council-agents.toml"
+CODEX_CONFIG_FILE="$CODEX_DIR/config.toml"
+BEGIN_MARKER="# BEGIN forge-council agents"
+END_MARKER="# END forge-council agents"
+
+if [ ! -d "$AGENTS_DIR" ]; then
+  echo "Error: agents directory not found at $AGENTS_DIR" >&2
+  exit 1
+fi
+if [ ! -f "$DEFAULTS_FILE" ]; then
+  echo "Error: defaults file not found at $DEFAULTS_FILE" >&2
+  exit 1
+fi
+if [ ! -f "$CONFIG_FILE" ]; then
+  echo "Error: config file not found at $CONFIG_FILE" >&2
+  exit 1
+fi
+
+toml_escape() {
+  local value="$1"
+  value="${value//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  printf '%s' "$value"
+}
+
+# Robust YAML reader for shallow keys, tolerant to 2/4-space indentation.
+yaml_provider_tier() {
+  local file="$1"
+  local tier="$2"
+  awk -v tier="$tier" '
+    function ind(s, i, c) {
+      for (i = 1; i <= length(s); i++) {
+        c = substr(s, i, 1)
+        if (c != " " && c != "\t") return i - 1
+      }
+      return -1
+    }
+    {
+      line = $0
+      level = ind(line)
+      if (line ~ /^[[:space:]]*providers:[[:space:]]*$/) { in_providers = 1; providers_indent = level; next }
+      if (in_providers && level >= 0 && level <= providers_indent &&
+          line ~ /^[[:space:]]*[A-Za-z0-9_-]+:[[:space:]]*$/ &&
+          line !~ /^[[:space:]]*providers:[[:space:]]*$/) { in_providers = 0 }
+      if (!in_providers) next
+      if (!in_codex && line ~ /^[[:space:]]*codex:[[:space:]]*$/) { in_codex = 1; codex_indent = level; next }
+      if (in_codex && level >= 0 && level <= codex_indent &&
+          line ~ /^[[:space:]]*[A-Za-z0-9_-]+:[[:space:]]*$/) { in_codex = 0 }
+      if (!in_codex) next
+      if (line ~ ("^[[:space:]]*" tier ":[[:space:]]*")) {
+        sub("^[[:space:]]*" tier ":[[:space:]]*", "", line)
+        print line
+        exit
+      }
+    }
+  ' "$file"
+}
+
+yaml_agent_model() {
+  local file="$1"
+  local agent="$2"
+  awk -v agent="$agent" '
+    function ind(s, i, c) {
+      for (i = 1; i <= length(s); i++) {
+        c = substr(s, i, 1)
+        if (c != " " && c != "\t") return i - 1
+      }
+      return -1
+    }
+    {
+      line = $0
+      level = ind(line)
+      if (line ~ /^[[:space:]]*agents:[[:space:]]*$/) { in_agents = 1; agents_indent = level; next }
+      if (in_agents && level >= 0 && level <= agents_indent &&
+          line ~ /^[[:space:]]*[A-Za-z0-9_-]+:[[:space:]]*$/ &&
+          line !~ /^[[:space:]]*agents:[[:space:]]*$/) { in_agents = 0 }
+      if (!in_agents) next
+      if (!in_agent && line ~ ("^[[:space:]]*" agent ":[[:space:]]*$")) { in_agent = 1; agent_indent = level; next }
+      if (in_agent && level >= 0 && level <= agent_indent &&
+          line ~ /^[[:space:]]*[A-Za-z0-9_-]+:[[:space:]]*$/) { in_agent = 0 }
+      if (!in_agent) next
+      if (line ~ /^[[:space:]]*model:[[:space:]]*/) {
+        sub(/^[[:space:]]*model:[[:space:]]*/, "", line)
+        print line
+        exit
+      }
+    }
+  ' "$file"
+}
+
+agent_description() {
+  local source_file="$1"
+  awk '
+    /^---$/ { section++; next }
+    section == 1 && /^description:/ {
+      sub(/^description:[[:space:]]*/, "")
+      gsub(/^"/, "")
+      gsub(/"$/, "")
+      print
+      exit
+    }
+  ' "$source_file"
+}
+
+resolve_model() {
+  local tier="$1"
+  local fast_model="$2"
+  local strong_model="$3"
+  if [ "$tier" = "fast" ]; then
+    printf '%s' "$fast_model"
+  elif [ "$tier" = "strong" ]; then
+    printf '%s' "$strong_model"
+  else
+    printf '%s' "$tier"
+  fi
+}
+
+resolve_reasoning_effort() {
+  local tier="$1"
+  local model="$2"
+  if [ "$tier" = "fast" ]; then
+    printf '%s' "low"
+  elif [ "$tier" = "strong" ]; then
+    case "$model" in
+      *-max) printf '%s' "high" ;;
+      *) printf '%s' "medium" ;;
+    esac
+  else
+    printf '%s' "medium"
+  fi
+}
+
+mkdir -p "$CODEX_AGENTS_DIR"
+
+fast_model="$(yaml_provider_tier "$CONFIG_FILE" fast)"
+strong_model="$(yaml_provider_tier "$CONFIG_FILE" strong)"
+if [ -z "$fast_model" ]; then
+  fast_model="$(yaml_provider_tier "$DEFAULTS_FILE" fast)"
+fi
+if [ -z "$strong_model" ]; then
+  strong_model="$(yaml_provider_tier "$DEFAULTS_FILE" strong)"
+fi
+if [ -z "$fast_model" ] || [ -z "$strong_model" ]; then
+  echo "Error: could not resolve codex fast/strong models from config/defaults" >&2
+  exit 1
+fi
+
+cat > "$MANIFEST_FILE" <<EOF
+# Generated by scripts/install-agents-codex.sh
+# Provisional implementation; migrate to forge-lib Rust when available.
+# Do not edit manually.
+EOF
+
+for source_file in "$AGENTS_DIR"/*.md; do
+  agent_name="$(basename "$source_file" .md)"
+  model_tier="$(yaml_agent_model "$CONFIG_FILE" "$agent_name")"
+  if [ -z "$model_tier" ]; then
+    model_tier="$(yaml_agent_model "$DEFAULTS_FILE" "$agent_name")"
+  fi
+  if [ -z "$model_tier" ]; then
+    echo "Error: could not resolve model tier for agent $agent_name" >&2
+    exit 1
+  fi
+
+  model="$(resolve_model "$model_tier" "$fast_model" "$strong_model")"
+  reasoning_effort="$(resolve_reasoning_effort "$model_tier" "$model")"
+  description="$(agent_description "$source_file")"
+
+  prompt_file="$CODEX_AGENTS_DIR/$agent_name.prompt.md"
+  awk '
+    /^---$/ { section++; next }
+    section >= 2 { print }
+  ' "$source_file" > "$prompt_file"
+
+  cat > "$CODEX_AGENTS_DIR/$agent_name.toml" <<EOF
+# Generated by scripts/install-agents-codex.sh
+# Provisional implementation; migrate to forge-lib Rust when available.
+# Source: agents/$agent_name.md
+description = "$(toml_escape "$description")"
+model = "$(toml_escape "$model")"
+model_reasoning_effort = "$(toml_escape "$reasoning_effort")"
+prompt_file = "$(toml_escape "$agent_name.prompt.md")"
+EOF
+
+  cat >> "$MANIFEST_FILE" <<EOF
+
+[agents.$agent_name]
+description = "$(toml_escape "$description")"
+config_file = "agents/$(toml_escape "$agent_name").toml"
+EOF
+done
+
+tmp_config="$(mktemp)"
+if [ -f "$CODEX_CONFIG_FILE" ]; then
+  awk -v begin="$BEGIN_MARKER" -v end="$END_MARKER" '
+    $0 == begin { skip = 1; next }
+    $0 == end { skip = 0; next }
+    skip != 1 { print }
+  ' "$CODEX_CONFIG_FILE" > "$tmp_config"
+else
+  : > "$tmp_config"
+fi
+
+{
+  cat "$tmp_config"
+  if [ -s "$tmp_config" ]; then
+    printf '\n'
+  fi
+  echo "$BEGIN_MARKER"
+  cat "$MANIFEST_FILE"
+  echo "$END_MARKER"
+} > "$CODEX_CONFIG_FILE"
+rm -f "$tmp_config"
+
+echo "Generated Codex role config in $CODEX_AGENTS_DIR"
+echo "Updated Codex config: $CODEX_CONFIG_FILE"

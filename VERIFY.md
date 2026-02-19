@@ -64,6 +64,17 @@ ls .codex/skills/{DebateCouncil,Demo,DeveloperCouncil,ProductCouncil,KnowledgeCo
 
 Expected: all 5 council skills present after `make install-skills-codex` (workspace mode).
 
+## Codex role config
+
+```bash
+ls .codex/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.toml
+ls .codex/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.prompt.md
+test -f .codex/agents/forge-council-agents.toml && echo "ok manifest"
+grep -n "BEGIN forge-council agents" .codex/config.toml
+```
+
+Expected: all Codex role artifacts present after `make install-codex-agent-config` (or `make install`), and `.codex/config.toml` contains the forge-council role block markers.
+
 ## Agent teams (optional)
 
 ```bash

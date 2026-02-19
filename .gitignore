@@ -5,6 +5,7 @@ config.yaml
 .claude/skills/*
 .codex/agents/*
 .codex/skills/*
+.codex/config.toml
 .gemini/agents/*
 .gemini/skills/*
 .opencode/skills/*
