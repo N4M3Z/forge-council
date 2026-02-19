@@ -105,7 +105,7 @@ Git submodule from `forge-lib`. Provides Rust binaries: `install-agents` (multi-
 
 ### Shell Scripts
 
-Shebang `#!/usr/bin/env bash`, start with `set -euo pipefail`. Resolve paths with `SCRIPT_DIR="$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`. Source libraries, don't execute. Functions use `local` variables and don't exit (let caller decide). Prefer `FORGE_LIB` env var from forge-core, fall back to local `lib/`.
+Shebang `#!/usr/bin/env bash`, start with `set -euo pipefail`. Resolve paths with `SCRIPT_DIR="$(command cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`. Source libraries, don't execute. Functions use `local` variables and don't exit (let caller decide). Prefer `FORGE_LIB` env var from forge-core, fall back to local `lib/`.
 
 ### Markdown Style
 

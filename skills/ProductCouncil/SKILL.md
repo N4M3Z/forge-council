@@ -1,6 +1,6 @@
 ---
 name: ProductCouncil
-version: 0.1.0
+version: 0.2.0
 description: "Convene a product council — multi-agent review of requirements, features, and product strategy. USE WHEN requirements review, feature scoping, product decisions, go/no-go, payments review."
 argument-hint: "[requirements doc, feature spec, product question, or strategy decision] [autonomous|interactive|quick]"
 ---
@@ -62,20 +62,26 @@ Collect all specialist assessments. Wait for all to report.
 
 **If quick mode**: Skip to Step 6.
 
-**If checkpoint or interactive mode**: Present Round 1 to the user:
+**If checkpoint or interactive mode**: Analyze all Round 1 assessments, then prepare **targeted questions** for the user.
 
-```
-### Round 1: Initial Assessments
+#### Step 4.1: Prepare Targeted Questions
 
-**Product Manager**: [assessment]
-**UxDesigner**: [assessment]
-**SoftwareDeveloper**: [assessment]
-**DataAnalyst**: [assessment]
-```
+Review the Round 1 assessments and identify 3-4 questions whose answers would **eliminate at least one option or confirm a constraint**. Questions must be:
+- **Closed or constrained** — not "what do you think?" but "is X partial, complete, or not started?"
+- **Decision-shaping** — the answer changes what the council can recommend
+- **Domain-specific** — reference the actual system, team, or technology under discussion
 
-Ask via **AskUserQuestion**:
-- Question: "Round 1 assessments above. Any context, constraints, or questions to address before debate?"
-- Options: "Continue to debate", "Add context (free text)", "Skip to synthesis"
+Examples of good checkpoint questions:
+- "How big is the team working on this? (affects scope recommendations)"
+- "Is the migration to X complete, partial, or not started?"
+- "Which of these is the #1 priority: speed, cost, or flexibility?"
+- "Are both vendors currently active, or is one being phased out?"
+
+#### Step 4.2: Present Round 1 + Ask Questions
+
+Present the Round 1 summaries, then ask via **AskUserQuestion** with up to 4 targeted questions. Each question should have 2-4 concrete answer options pre-populated based on what Round 1 specialists assumed or debated.
+
+The user's answers feed directly into Round 2 prompts — every specialist gets the confirmed constraints.
 
 ## Step 5: Rounds 2 & 3 — Debate
 
@@ -95,7 +101,12 @@ ROUND 2 INSTRUCTION: Respond to specific points from other specialists BY NAME. 
 
 Collect all Round 2 responses.
 
-**If interactive mode**: Present Round 2 and ask user before proceeding.
+**If interactive mode**: Present Round 2 summaries, then prepare a second round of targeted questions. By Round 2, specialists have identified specific tensions and trade-offs — ask the user to resolve the ones that matter most. Examples:
+- "Specialist A says X, Specialist B says Y. Which aligns with your constraints?"
+- "The team identified a build-vs-buy trade-off for Z. Preference?"
+- "Should we evaluate [vendor discovered in research] or skip it?"
+
+Use **AskUserQuestion** with up to 4 questions. Feed answers into Round 3 convergence prompts.
 
 ### Round 3: Convergence
 
@@ -117,31 +128,31 @@ Collect all Round 3 responses.
 
 ## Step 6: Synthesize and Teardown
 
-Produce the product verdict:
+Produce the product recommendation:
 
 ```markdown
-### Product Council Verdict: [Topic]
+### Product Council Recommendation: [Topic]
 
 **Specialists consulted**: [who participated]
 **Rounds**: [how many completed]
 
-#### Requirements Gaps
-Missing requirements, ambiguous acceptance criteria, untested assumptions.
+#### Unanimous Agreements
+What all specialists converged on — these are high-confidence recommendations.
 
-#### UX Concerns
-User flow issues, friction points, accessibility gaps, cognitive load problems.
+#### Key Disagreements
+Where specialists differ — present both sides with reasoning. Flag which need the user's decision.
 
-#### Feasibility Issues
-Technical constraints, architecture impact, timeline risks, dependency concerns.
+#### Feasibility Assessment
+Technical constraints, architecture impact, timeline risks, team capacity, dependency concerns.
 
 #### Success Metrics
-Are the metrics clear, measurable, and aligned with the actual goal?
-
-#### Disagreements
-Where specialists differ — present both sides with reasoning.
+Concrete, measurable KPIs with targets and timeframes.
 
 #### Recommended Actions
-Prioritized list: ship as-is, refine scope, add requirements, reconsider approach.
+Prioritized roadmap: what to do first, second, third. Include team allocation if discussed.
+
+#### Open Decisions
+Specific choices the user must make, with the options and trade-offs from each side.
 ```
 
 After synthesis:
