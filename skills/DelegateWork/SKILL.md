@@ -8,7 +8,7 @@ description: "Delegate complex implementation plans to specialist agents — tas
 
 You are the **implementation lead**. Your job is to accept a complex task or implementation plan, decompose it into discrete steps, delegate each step to the right specialist agent, validate results via peer review, and synthesize a completion report.
 
-This is NOT a council — there is no multi-round debate. The lifecycle is: plan, delegate, review, validate, report.
+This is NOT a council — there is no multi-round debate. The lifecycle is: validate input, plan, delegate, review, verify, report.
 
 ## Step 1: Parse Input
 
@@ -28,7 +28,19 @@ Detect **mode** from keywords:
 | "interactive", "step by step" | interactive | Pause after every step for user feedback |
 | "plan-only", "plan only" | plan-only | Decompose and output plan, don't execute |
 
-## Step 2: Decompose Plan
+## Step 2: Validate Input
+
+Before decomposing, verify the input is clear enough to implement:
+
+1. **Scope check** — can you identify concrete files, modules, or areas to change?
+2. **Intent check** — is the desired outcome unambiguous?
+3. **Completeness check** — are there missing details that would force guessing during implementation (e.g., which API style, which auth method, which DB schema)?
+
+If any check fails, ask the user for clarification before proceeding. Be specific about what's missing — don't ask generic "can you clarify?" questions.
+
+**Pass threshold**: you can identify scope, intent, and enough detail to write acceptance criteria for each step. If not, stop and ask.
+
+## Step 3: Decompose Plan
 
 Break the task into discrete, sequential steps. For each step, define:
 
@@ -56,7 +68,7 @@ Output the plan for user review.
 
 **Trivial task shortcut**: If the task is trivial (single file, obvious change), skip delegation and just do it — tell the user delegation isn't warranted.
 
-## Step 3: Pre-flight Check
+## Step 4: Pre-flight Check
 
 Before executing:
 
@@ -64,7 +76,7 @@ Before executing:
 2. Verify the Task tool is available by checking the tool list
 3. If Task tool is unavailable: output the plan as a **manual execution guide** and stop — list each step with the agent type and prompt the user would need to run manually
 
-## Step 4: Save Master Plan
+## Step 5: Save Master Plan
 
 Write the full decomposed plan to `.forge/delegate-plan.md`:
 
@@ -98,11 +110,11 @@ Rules for the master plan file:
 
 **If plan-only mode**: Output the plan and stop here.
 
-## Step 5: Execute Steps
+## Step 6: Execute Steps
 
 For each step in the plan, sequentially:
 
-### 5a: Implement
+### 6a: Implement
 
 Re-read `.forge/delegate-plan.md` to confirm the current step's details.
 
@@ -113,20 +125,20 @@ Spawn the assigned specialist via Task tool:
   - Exact file scope boundaries — "you may only modify these files: [list]"
   - Instruction to report what was changed and what was done
 
-### 5b: Peer Review
+### 6b: Peer Review
 
 Spawn a different specialist to review the work:
 - `subagent_type`: the reviewer from the plan
 - Prompt: "Review the changes made by [implementer agent]. Check against these acceptance criteria: [criteria]. Report: **APPROVED** or **CHANGES NEEDED** with specific feedback."
 
-### 5c: Iterate if Needed
+### 6c: Iterate if Needed
 
 If reviewer says **CHANGES NEEDED**:
 1. Spawn the original specialist again with the reviewer's feedback
 2. Spawn the reviewer again to re-check
 3. **Max 2 review rounds per step** — if still unresolved after 2 rounds, escalate to user with both perspectives
 
-### 5d: Record Progress
+### 6d: Record Progress
 
 Append to `.forge/delegate-tracking.md`:
 ```markdown
@@ -140,14 +152,14 @@ Append to `.forge/delegate-tracking.md`:
 
 Mark step complete, proceed to next.
 
-### 5e: Budget Check
+### 6e: Budget Check
 
 Track total spawns (implementers + reviewers count toward budget):
 - **Per phase**: max 5 implementer spawns
 - **Per invocation**: max 15 total spawns (implementers + reviewers)
 - If budget exceeded: stop, report progress, and output remaining steps as a manual guide
 
-### 5f: User Checkpoints
+### 6f: User Checkpoints
 
 | Mode | Pause frequency |
 |------|----------------|
@@ -159,9 +171,19 @@ At each checkpoint, present progress and ask:
 - "Continue with remaining steps?"
 - Options: "Continue", "Adjust plan", "Stop here"
 
-## Step 6: Synthesize
+## Step 7: Verify
 
-After all steps complete (or budget/stop reached):
+After all execution steps complete (or budget/stop reached), validate the overall result:
+
+1. **Test verification** — spawn `QaTester` to run existing tests and confirm nothing is broken. If the task introduced new functionality, verify that tests were created and pass.
+2. **Requirements check** — compare the implementation against the original user prompt. Does every requirement have a corresponding change? Flag any gaps.
+3. **Code quality scan** — spawn `SecurityArchitect` to spot-check the changed files for security issues, and `SoftwareDeveloper` to check for clarity and maintainability concerns.
+
+If verification reveals issues, loop back to Step 6 for the affected files (subject to spawn budget). If budget is exhausted, include the issues in the final report.
+
+## Step 8: Synthesize
+
+After verification passes (or budget/stop reached):
 
 1. Re-read `.forge/delegate-tracking.md`
 2. Produce a completion report:
@@ -188,7 +210,7 @@ After all steps complete (or budget/stop reached):
 - Step 3: reviewer disagreed on error handling approach — escalated to user
 ```
 
-## Step 7: Sequential Fallback
+## Step 9: Sequential Fallback
 
 If agent teams are not available, use Task tool without `team_name`.
 
