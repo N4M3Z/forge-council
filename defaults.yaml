@@ -161,6 +161,16 @@ skills:
                 - CzechLawAdvisor
                 - IndustryExpert
                 - TheOpponent
+        DelegateWork:
+            scope: workspace
+            roles:
+                - SoftwareDeveloper
+                - QaTester
+                - DatabaseEngineer
+                - DevOpsEngineer
+                - DocumentationWriter
+                - SecurityArchitect
+                - SystemArchitect
 
     gemini:
         DebateCouncil:
@@ -169,6 +179,7 @@ skills:
         KnowledgeCouncil:
         ProductCouncil:
         HiringCouncil:
+        DelegateWork:
 
     codex:
         DebateCouncil:
@@ -177,6 +188,7 @@ skills:
         KnowledgeCouncil:
         ProductCouncil:
         HiringCouncil:
+        DelegateWork:
 
 providers:
     gemini:

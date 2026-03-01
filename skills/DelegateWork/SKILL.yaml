@@ -1,0 +1,2 @@
+claude:
+    argument-hint: "[implementation plan, task description, or step list] [autonomous|interactive|plan-only]"
