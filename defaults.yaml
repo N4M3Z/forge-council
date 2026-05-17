@@ -4,21 +4,14 @@
 # defaults.yaml is the single source of truth for deployment config (model, tools, scope).
 # Agent frontmatter provides name, description, version. Everything else comes from here.
 
-# Agent teams: disabled | enabled
-# - disabled: council skills check CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS env at runtime
-# - enabled: @AgentTeams.md in CLAUDE.md tells Claude to use teams directly
-teams: enabled
-
 agents:
     TheOpponent:
         model: strong
         tools: Read, Grep, Glob, WebSearch
-        scope: workspace
 
     WebResearcher:
         model: fast
         tools: Read, Grep, Glob, WebSearch, WebFetch
-        scope: workspace
 
     SoftwareDeveloper:
         model: fast
@@ -119,94 +112,23 @@ agents:
         model: fast
         tools: Read, Grep, Glob, WebSearch, WebFetch
 
-skills:
-    claude:
-        DebateCouncil:
-            scope: workspace
-            roles:
-                - SystemArchitect
-                - UxDesigner
-                - SoftwareDeveloper
-                - WebResearcher
-        Demo:
-        DeveloperCouncil:
-            scope: workspace
-            roles:
-                - SoftwareDeveloper
-                - DatabaseEngineer
-                - DevOpsEngineer
-                - DocumentationWriter
-                - QaTester
-                - SecurityArchitect
-        KnowledgeCouncil:
-            scope: workspace
-            roles:
-                - DocumentationWriter
-                - SystemArchitect
-                - WebResearcher
-        ProductCouncil:
-            scope: workspace
-            roles:
-                - ProductManager
-                - UxDesigner
-                - SoftwareDeveloper
-                - DataAnalyst
-        HiringCouncil:
-            scope: workspace
-            roles:
-                - TalentAcquisition
-                - HiringManager
-                - CompensationAnalyst
-                - ExecutiveAdvisor
-                - CzechLawAdvisor
-                - IndustryExpert
-                - TheOpponent
-
-    gemini:
-        DebateCouncil:
-        Demo:
-        DeveloperCouncil:
-        KnowledgeCouncil:
-        ProductCouncil:
-        HiringCouncil:
-
-    codex:
-        DebateCouncil:
-        Demo:
-        DeveloperCouncil:
-        KnowledgeCouncil:
-        ProductCouncil:
-        HiringCouncil:
-
 providers:
-    gemini:
-        models:
-            - gemini-2.0-flash
-            - gemini-2.5-flash
-            - gemini-2.5-pro
-        fast: gemini-2.0-flash
-        strong: gemini-2.5-pro
-
     claude:
         models:
-            - claude-opus-4-6
-            - claude-sonnet-4-6
-        fast: claude-sonnet-4-6
-        strong: claude-opus-4-6
+            fast: [claude-sonnet-4-6]
+            strong: [claude-opus-4-6]
+
+    gemini:
+        models:
+            fast: [gemini-2.0-flash]
+            strong: [gemini-2.5-pro]
 
     codex:
         models:
-            - gpt-5.1-codex-mini
-            - o4-mini
-        fast: gpt-5.1-codex-mini
-        strong: o4-mini
-        reasoning_effort:
-            fast: low
-            strong: medium
+            fast: [gpt-5.1-codex-mini]
+            strong: [o4-mini]
 
     opencode:
         models:
-            - claude-opus-4-6
-            - claude-sonnet-4-6
-        fast: claude-sonnet-4-6
-        strong: claude-opus-4-6
+            fast: [claude-sonnet-4-6]
+            strong: [claude-opus-4-6]
