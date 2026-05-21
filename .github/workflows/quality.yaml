@@ -20,7 +20,9 @@ jobs:
               uses: N4M3Z/forge-cli/.github/actions/setup-forge@main
 
             - name: Install tools
-              run: sudo apt-get install -y gitleaks
+              run: |
+                  pip install semgrep
+                  sudo apt-get install -y gitleaks
 
             - name: Validate
               uses: j178/prek-action@v2
