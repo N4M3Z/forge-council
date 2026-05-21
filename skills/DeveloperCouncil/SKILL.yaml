@@ -1,2 +1,0 @@
-claude:
-    argument-hint: "[task description, PR reference, file paths, or architectural question] [autonomous|interactive|quick]"

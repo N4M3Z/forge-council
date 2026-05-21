@@ -1,26 +1,23 @@
 # forge-council
 
-Thirteen specialists. Four councils. One verdict.
-
-A single AI agent is a single perspective. It gives you one take — its own — and misses everything outside its frame. forge-council provides specialist agents that work from independent perspectives: architecture, design, implementation, testing, security, product, research. Assemble them into councils for multi-round debates, or invoke any specialist standalone.
+A single AI agent is a single perspective. It gives you one take — its own — and misses everything outside its frame. forge-council provides specialist agents that work from independent perspectives: architecture, design, implementation, testing, security, product, research, hiring. Assemble them into councils for multi-round debates, or invoke any specialist standalone.
 
 ## Quick Start
 
 ```bash
-git clone --recurse-submodules https://github.com/N4M3Z/forge-council.git
+git clone https://github.com/N4M3Z/forge-council.git
 cd forge-council
-make install     # Install agents + skills to .claude/, .gemini/, .codex/
-make verify
+make install     # forge install — deploys agents, skills, rules to all providers
 ```
 
 Then in your session:
 
 ```text
-/Demo
-/Council [topic]
+/DebateCouncil [topic]
 /DeveloperCouncil [task]
 /ProductCouncil [requirements]
 /KnowledgeCouncil [knowledge-management topic]
+/HiringCouncil [job posting or role design]
 ```
 
 Or invoke any specialist standalone — no council needed:
@@ -31,18 +28,14 @@ Task: WebResearcher — "Best practices for rate limiting in distributed systems
 Task: SecurityArchitect — "Threat model our authentication system"
 ```
 
-> **Note**: `make install` defaults to `SCOPE=workspace` and installs into local `./.claude`, `./.gemini`, and `./.codex`. To install globally for your user, use `make install SCOPE=user`.
+> **Note**: `make install` deploys to the local workspace (`./.claude`, `./.gemini`, `./.codex`, `./.opencode`). To install at user scope, run `forge install --target ~`.
 
 ## Makefile Commands
 
-Primary commands:
-
 ```bash
-make install                 # install agents + skills + teams config (SCOPE=workspace|user|all)
-make install-agents          # install agent artifacts (uses SCOPE)
-make install-skills          # install skills for Claude, Gemini, and Codex (uses SCOPE)
-make install-skills-codex    # install native council skills (uses SCOPE)
-make verify                  # run verification checks (13 agents)
+make install     # forge install — assemble + deploy for every provider
+make validate    # pre-commit cascade (prek → forge validate → validate.sh fallback)
+make clean       # remove build/ artifacts
 ```
 
 ## What it does
@@ -150,13 +143,7 @@ Round 3 — Convergence:
 
 ## Try it
 
-After installing, run the interactive demo:
-
-```
-/Demo
-```
-
-Or jump straight into a council with your own question:
+Jump into a council with your own question:
 
 ```
 /DebateCouncil [any question worth debating]
@@ -235,38 +222,37 @@ In Codex, specialists are used via **explicit sub-agent invocation**. They are n
 | **TheOpponent** | strong | standalone | Devil's advocate, stress-test ideas and decisions |
 | **WebResearcher** | fast | debate, knowledge | Deep web research, multi-query synthesis, citations |
 | **ForensicAgent** | strong | standalone | PII and secret detection forensic specialist |
+| **TalentAcquisition** | fast | hiring | Sourcing strategy, JD design, candidate funnel |
+| **HiringManager** | fast | hiring | Role definition, interview rubric, hiring decision |
+| **CompensationAnalyst** | fast | hiring | Compensation benchmarks, equity bands |
+| **ExecutiveAdvisor** | strong | hiring | Strategic hiring, leadership roles |
+| **CzechLawAdvisor** | strong | hiring | Czech labour law and employment compliance |
+| **IndustryExpert** | fast | hiring | Sector-specific hiring norms |
 
 Every agent also works standalone via the Task tool. TheOpponent and WebResearcher can join any council as optional extras.
 
 ## Install
 
-Works as a **standalone Claude Code plugin** or as a **forge-core module**. No compiled code — forge-council is pure markdown orchestration.
-
-### Standalone
+forge-council ships as a Claude Code plugin and as a forge-cli module. No compiled code — only markdown.
 
 ```bash
-git clone --recurse-submodules https://github.com/N4M3Z/forge-council.git
+git clone https://github.com/N4M3Z/forge-council.git
 cd forge-council
-make install
+make install            # forge install — workspace deploy
+forge install --target ~ # user-scope deploy (alternative)
 ```
 
-By default, this installs agents and skills into the local `.gemini/` directory of the project (`SCOPE=workspace`). To install to your user home directory (for use across all projects):
-
-```bash
-make install SCOPE=user
-```
-
-Council mode uses agent teams (parallel spawning). Enable in settings:
+Council parallel mode requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json`:
 
 ```json
 {
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  }
+    "env": {
+        "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    }
 }
 ```
 
-Without this flag, councils fall back to sequential subagent calls — same specialists, same debate, just slower. Standalone agents work without any flags.
+Without the flag, councils fall back to sequential subagent calls — same specialists, same debate, just slower. Standalone agents work without any flags.
 
 ## Skills
 
@@ -276,7 +262,7 @@ Without this flag, councils fall back to sequential subagent calls — same spec
 | `/DeveloperCouncil` | Code review, architecture, debugging with up to 6 dev specialists |
 | `/ProductCouncil` | Requirements review, feature scoping, strategy with PM, UxDesigner, SoftwareDeveloper, DataAnalyst |
 | `/KnowledgeCouncil` | Knowledge architecture and memory lifecycle decisions with DocumentationWriter, SystemArchitect, WebResearcher |
-| `/Demo` | Interactive showcase — roster, flow, and example invocations |
+| `/HiringCouncil` | Job postings, role design, compensation, recruitment strategy |
 
 ### Debate modes
 
@@ -289,105 +275,82 @@ Without this flag, councils fall back to sequential subagent calls — same spec
 
 ## Configuration
 
-Zero config required. `defaults.yaml` defines the agent roster and council composition. Override in `config.yaml` (gitignored):
+Zero config required. `defaults.yaml` defines the agent roster and per-agent tool/model assignments. Override in `config.yaml` (gitignored):
 
-| Setting | Default | What it controls |
-|---------|---------|-----------------|
-| `models` | fast/strong | Global model tier mappings |
-| `gemini` | tiers/whitelist | Gemini-specific models and whitelist |
-| `claude` | tiers/whitelist | Claude-specific models and whitelist |
-| `agents.*` | 13 agents | Agent deployment config (model, tools, scope) |
-| `skills.*` | council roles | Council rosters and scope |
-| `{AgentName}.tools` | _(none)_ | Specialist-specific tool overrides (sidecars) |
-| `{AgentName}.scope` | _(none)_ | Specialist-specific scope override (user|workspace) |
+| Setting | What it controls |
+|---------|------------------|
+| `agents.<Name>.model` | Model tier (`fast` or `strong`) for the named agent |
+| `agents.<Name>.tools` | Tool allowlist for the named agent |
+| `agents.<Name>.skills` | Skills available to the named agent |
+| `providers.<provider>.models.{fast,strong}` | Provider-specific model tier mapping |
 
 ### Provider-Specific Models
 
-You can define separate model tiers and whitelists for Gemini and Claude in `defaults.yaml`:
+`defaults.yaml` lists per-provider model tiers under `providers.<provider>.models.{fast,strong}`:
 
 ```yaml
 providers:
-  gemini:
-    models:
-      - gemini-2.0-flash
-      - gemini-2.5-flash
-      - gemini-2.5-pro
-    fast: gemini-2.0-flash
-    strong: gemini-2.5-pro
-
-  claude:
-    models:
-      - claude-opus-4.6
-      - claude-haiku-4.6
-      - claude-sonnet-4-6
-    fast: claude-sonnet-4-6
-    strong: claude-opus-4.6
+    claude:
+        models:
+            fast: [claude-sonnet-4-6]
+            strong: [claude-opus-4-6]
+    gemini:
+        models:
+            fast: [gemini-2.0-flash]
+            strong: [gemini-2.5-pro]
 ```
 
-Only whitelisted models are included in the generated agent frontmatter for each provider.
+`forge install` selects the right tier per provider based on the agent's `model:` field.
 
-### Specialist Tool Overrides (Sidecars)
+### Specialist Overrides
 
-Sidecar behavior is implemented through `defaults.yaml` (committed defaults) and optional `config.yaml` (local overrides, gitignored).
-
-Use `config.yaml` to override per-agent model tiers/tools without editing agent markdown:
+Use `config.yaml` to override per-agent settings without editing agent markdown:
 
 ```yaml
 agents:
-  SoftwareDeveloper:
-    model: strong
-    tools: Read, Grep, Glob, Bash, Write, Edit
-
-  QaTester:
-    tools:
-      - Read
-      - Grep
-      - Glob
-      - Bash
-      - Write
-      - Edit
+    SoftwareDeveloper:
+        model: strong
+        tools: Read, Grep, Glob, Bash, Write, Edit
 ```
 
-After changing overrides, reinstall agents:
-
-```bash
-make install-agents SCOPE=workspace
-```
+After changing overrides, run `make install` and restart your session.
 
 ## Architecture
 
-Thirteen markdown agent files, five skills, and deployment utilities in forge-lib.
+Specialist agents, council skills, and always-loaded rules. Deployment is handled by the external `forge` CLI.
 
 ```
 agents/
-  SystemArchitect.md      # System design, boundaries, scalability
-  DataAnalyst.md          # Metrics, KPIs, business impact
-  DatabaseEngineer.md     # Schema design, query performance
-  UxDesigner.md           # UX, user needs, accessibility
-  SoftwareDeveloper.md    # Implementation quality, patterns
-  DevOpsEngineer.md       # CI/CD, deployment, monitoring
-  DocumentationWriter.md  # README quality, API docs, DX
-  TheOpponent.md          # Devil's advocate, critical analysis
-  ProductManager.md       # Requirements, roadmap, market fit
-  WebResearcher.md        # Web research, multi-query synthesis
-  ForensicAgent.md        # PII and secret detection forensic specialist
-  SecurityArchitect.md    # Threat modeling, security policy
-  QaTester.md             # Test strategy, coverage, edge cases
+  SoftwareDeveloper.md         # Implementation quality, patterns
+  SystemArchitect.md           # System design, boundaries, scalability
+  DataAnalyst.md               # Metrics, KPIs, business impact
+  DatabaseEngineer.md          # Schema design, query performance
+  UxDesigner.md                # UX, user needs, accessibility
+  DevOpsEngineer.md            # CI/CD, deployment, monitoring
+  DocumentationWriter.md       # README quality, API docs, DX
+  TheOpponent.md               # Devil's advocate, critical analysis
+  ProductManager.md            # Requirements, roadmap, market fit
+  WebResearcher.md             # Web research, multi-query synthesis
+  ForensicAgent.md             # PII and secret detection forensic specialist
+  SecurityArchitect.md         # Threat modeling, security policy
+  QaTester.md                  # Test strategy, coverage, edge cases
+  TalentAcquisition.md         # Sourcing, JD design, candidate funnel
+  HiringManager.md             # Role definition, interview rubric
+  CompensationAnalyst.md       # Compensation benchmarks, equity bands
+  ExecutiveAdvisor.md          # Strategic hiring, leadership roles
+  CzechLawAdvisor.md           # Czech labour law and employment compliance
+  IndustryExpert.md            # Sector-specific hiring norms
 skills/
-  DebateCouncil/          # Generic 3-round debate
-  DeveloperCouncil/       # Developer council orchestration
-  KnowledgeCouncil/       # Knowledge architecture and memory lifecycle decisions
-  ProductCouncil/         # Product council orchestration
-  Demo/                   # Interactive showcase
-lib/
-  bin/                    # Rust binaries from forge-lib submodule
-    install-agents        # Multi-provider agent deployment
-    install-skills        # Provider-aware skill installer
-    validate-module       # Convention test suite
-defaults.yaml             # Agent roster, council composition, provider config
-module.yaml               # Module metadata
+  DebateCouncil/               # Generic 3-round debate
+  DeveloperCouncil/            # Developer council orchestration
+  KnowledgeCouncil/            # Knowledge architecture and memory lifecycle
+  ProductCouncil/              # Product council orchestration
+  HiringCouncil/               # Hiring council orchestration
+rules/
+  AgentTeams.md                # TeamCreate / TeamDelete gate + teardown protocol
+  LearningCapture.md           # Post-teardown learning extraction
+defaults.yaml                  # Agent roster, tool assignments, provider model tiers
+module.yaml                    # Module metadata
 ```
 
-Each agent file has `name`, `description`, `version` in frontmatter plus a structured body: Role, Expertise, Instructions, Output Format, Constraints. Deployment config (model, tools, scope) lives in `defaults.yaml`. Agents are deployed by `lib/bin/install-agents` (standalone) or `sync-agents.sh` (forge-core).
-
-> `CLAUDE.md` and `AGENTS.md` are autogenerated by `/Init`. Do not edit directly — run `/Update` to regenerate.
+Each agent file has `name`, `description`, `version` in frontmatter plus a structured body: Role, Expertise, Instructions, Output Format, Constraints. Deployment config (model, tools) lives in `defaults.yaml`. The `forge` CLI assembles all three artifact directories into `build/` and deploys them to provider directories.

@@ -2,6 +2,7 @@
 name: ProductCouncil
 version: 0.2.0
 description: "Convene a product council — multi-agent review of requirements, features, and product strategy. USE WHEN requirements review, feature scoping, product decisions, go/no-go, payments review."
+argument-hint: "[requirements doc, feature spec, product question, or strategy decision] [autonomous|interactive|quick]"
 ---
 
 # Product Council

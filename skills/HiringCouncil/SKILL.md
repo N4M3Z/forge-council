@@ -2,6 +2,7 @@
 name: HiringCouncil
 version: 0.4.0
 description: "Convene a hiring council -- multi-agent review of job postings, role definitions, and hiring strategy. USE WHEN job posting review, role design, hiring decisions, compensation review, recruitment strategy."
+argument-hint: "[job posting file, role description, or hiring question] [autonomous|interactive|quick]"
 ---
 
 # Hiring Council
