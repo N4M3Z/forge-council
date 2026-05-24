@@ -9,7 +9,7 @@ A single AI agent is a single perspective. It gives you one take — its own —
 ```bash
 git clone --recurse-submodules https://github.com/N4M3Z/forge-council.git
 cd forge-council
-make install     # Installs locally to .gemini/ by default
+make install     # Install agents + skills to .claude/, .gemini/, .codex/
 make verify
 ```
 

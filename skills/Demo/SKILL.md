@@ -40,8 +40,8 @@ Present the agents as a formatted table, reading each from the agents directory:
 
 ```bash
 # Resolve agents directory relative to skill
-SKILL_DIR="$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-AGENTS_DIR="$(builtin cd "$SKILL_DIR/../../agents" && pwd)"
+SKILL_DIR="$(command cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+AGENTS_DIR="$(command cd "$SKILL_DIR/../../agents" && pwd)"
 
 for f in "$AGENTS_DIR"/*.md; do
   name=$(grep "^name:" "$f" | head -1 | awk -F': ' '{print $2}')

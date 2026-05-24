@@ -140,7 +140,7 @@ fallback. Main session IS the moderator (never spawn one). Maximum roster size 7
 ## Shell Scripts
 
 - Shebang: `#!/usr/bin/env bash`; start with `set -euo pipefail`
-- Resolve paths: `SCRIPT_DIR="$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`
+- Resolve paths: `SCRIPT_DIR="$(command cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`
 - Source libraries, don't execute: `source "$FORGE_LIB/frontmatter.sh"`
 - Check for required files/dirs before proceeding, `exit 1` with user-friendly message
 - Argument parsing via `for arg in "$@"; do case "$arg" in ...`

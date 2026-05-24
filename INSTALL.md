@@ -37,7 +37,7 @@ make install
 By default, this installs agents and skills into the local project directory for use in the current workspace (`SCOPE=workspace`):
 
 - Agents: `.claude/agents/`, `.gemini/agents/`, `.codex/agents/`
-- Skills: `.claude/skills/`, `.gemini/skills/`, `.codex/skills/`
+- Skills: `.claude/skills/`, `.gemini/skills/`, `.codex/skills/`, `.opencode/skills/`
 
 To install globally for your user (available in all projects):
 
@@ -45,18 +45,19 @@ To install globally for your user (available in all projects):
 make install SCOPE=user
 ```
 
-This installs specialists to `~/.claude/agents/`, `~/.gemini/agents/`, and `~/.codex/agents`, and installs skills for Claude, Gemini, and Codex.
+This installs specialists to `~/.claude/agents/`, `~/.gemini/agents/`, and `~/.codex/agents/`, and installs skills for Claude, Gemini, Codex, and OpenCode.
 
 Use `SCOPE=all` to target both workspace and user home directories.
 
-The Makefile automatically initializes and updates the `lib/` submodule if required scripts are missing.
+The Makefile automatically initializes the `lib/` submodule on first run if `Cargo.toml` is not found.
 
 Provider-specific skill installs:
 
 ```bash
-make install-skills-claude   # ./.claude/skills/ (SCOPE=workspace) or ~/.claude/skills/ (SCOPE=user|all)
-make install-skills-gemini   # ~/.gemini/skills/ (uses SCOPE)
-make install-skills-codex    # ./.codex/skills/ (SCOPE=workspace) or ~/.codex/skills/ (SCOPE=user|all)
+make install-skills-claude    # ./.claude/skills/ (SCOPE=workspace) or ~/.claude/skills/ (SCOPE=user|all)
+make install-skills-gemini    # via gemini CLI (skipped if CLI not installed)
+make install-skills-codex     # ./.codex/skills/ (SCOPE=workspace) or ~/.codex/skills/ (SCOPE=user|all)
+make install-skills-opencode  # ./.opencode/skills/ with kebab-case names (SCOPE=workspace|user|all)
 ```
 
 ### 3. Running Agents in Codex
@@ -124,7 +125,7 @@ Agents require a session restart to be discovered.
 | WebResearcher | fast | debate, knowledge | Deep web research, multi-query synthesis, citations |
 | ForensicAgent | strong | standalone | PII and secret detection forensic specialist |
 
-No compiled binaries — forge-council is pure markdown orchestration. Agents are markdown files deployed by scope across `.claude/.gemini/.codex` (workspace) and/or `~/.claude/~/.gemini/~/.codex` (user/all).
+No compiled binaries — forge-council is pure markdown orchestration. Agents are markdown files deployed by scope across `.claude/`, `.gemini/`, `.codex/` (workspace) and/or `~/` equivalents (user/all). Skills are additionally deployed to `.opencode/skills/` with kebab-case names.
 
 ## Configuration
 
