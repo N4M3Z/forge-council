@@ -1,7 +1,5 @@
 # forge-council Makefile
 
-AGENTS   = SoftwareDeveloper DatabaseEngineer DevOpsEngineer DocumentationWriter QaTester SecurityArchitect SystemArchitect UxDesigner ProductManager DataAnalyst TheOpponent WebResearcher ForensicAgent
-SKILLS   = DebateCouncil Demo DeveloperCouncil ProductCouncil KnowledgeCouncil
 AGENT_SRC = agents
 SKILL_SRC = skills
 LIB_DIR  = $(or $(FORGE_LIB),lib)
@@ -59,7 +57,7 @@ install-teams-config: install-skills-claude
 	    exit 1; \
 	  fi; \
 	  for dst in $$dsts; do \
-	    for skill in DebateCouncil DeveloperCouncil ProductCouncil KnowledgeCouncil; do \
+	    for skill in $(SKILLS); do \
 	      sf="$$dst/$$skill/SKILL.md"; \
 	      if [ -f "$$sf" ]; then \
 	        if ! grep -q '@AgentTeams.md' "$$sf"; then \

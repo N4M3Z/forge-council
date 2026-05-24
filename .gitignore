@@ -5,9 +5,12 @@ config.yaml
 .claude/skills/*
 .codex/agents/*
 .codex/skills/*
+.codex/config.toml
 .gemini/agents/*
 .gemini/skills/*
+.opencode/agents/*
 .opencode/skills/*
+.opencode/package.json
 
 # Keep directory structure
 !.claude/agents/.gitkeep
@@ -16,4 +19,5 @@ config.yaml
 !.codex/skills/.gitkeep
 !.gemini/agents/.gitkeep
 !.gemini/skills/.gitkeep
+!.opencode/agents/.gitkeep
 !.opencode/skills/.gitkeep

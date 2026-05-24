@@ -23,30 +23,59 @@ agents:
     SoftwareDeveloper:
         model: fast
         tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
+        skills:
+            - RustDevelopment
+            - Git
+            - DefensiveProgramming
+            - TestDrivenDevelopment
+            - CodeCleanup
 
     DatabaseEngineer:
         model: fast
         tools: Read, Grep, Glob, Bash
+        skills:
+            - DefensiveProgramming
+            - Git
 
     DevOpsEngineer:
         model: fast
         tools: Read, Grep, Glob, Bash
+        skills:
+            - Git
+            - GitHub
+            - SystemCheck
 
     DocumentationWriter:
         model: fast
         tools: Read, Grep, Glob
+        skills:
+            - MarkdownLint
+            - MarkdownSchema
+            - GenerateOutline
 
     QaTester:
         model: fast
         tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
+        skills:
+            - TestDrivenDevelopment
+            - DefensiveProgramming
+            - Git
 
     SecurityArchitect:
         model: strong
         tools: Read, Grep, Glob, Bash, WebSearch
+        skills:
+            - SecretScan
+            - DefensiveProgramming
 
     SystemArchitect:
         model: fast
         tools: Read, Grep, Glob
+        skills:
+            - BuildModule
+            - BuildSkill
+            - RustDevelopment
+            - DefensiveProgramming
 
     UxDesigner:
         model: fast
@@ -63,6 +92,8 @@ agents:
     ForensicAgent:
         model: strong
         tools: Read, Grep, Glob, Bash, WebSearch
+        skills:
+            - SecretScan
 
     TalentAcquisition:
         model: fast
