@@ -1,0 +1,32 @@
+repos:
+    - repo: builtin
+      hooks:
+          - id: trailing-whitespace
+          - id: check-yaml
+          - id: check-json
+
+    - repo: local
+      hooks:
+          - id: shellcheck
+            name: shellcheck
+            entry: shellcheck -S warning
+            language: system
+            types: [shell]
+
+          - id: gitleaks
+            name: gitleaks
+            entry: gitleaks detect --no-banner --no-git -s .
+            language: system
+            pass_filenames: false
+
+          - id: semgrep
+            name: semgrep OWASP
+            entry: semgrep scan --config=p/owasp-top-ten --metrics=off --quiet .
+            language: system
+            pass_filenames: false
+
+          - id: forge-validate
+            name: forge validate
+            entry: forge validate
+            language: system
+            pass_filenames: false
