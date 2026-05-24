@@ -1,0 +1,8 @@
+{
+  "name": "forge-council",
+  "version": "0.1.0",
+  "description": "Multi-agent council orchestration via Claude Code agent teams.",
+  "author": { "name": "Martin Zeman" },
+  "hooks": {},
+  "skills": ["./skills"]
+}

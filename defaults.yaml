@@ -1,0 +1,52 @@
+# forge-council default configuration.
+# Override: create config.yaml (gitignored) with only the fields you want to change.
+#
+# Model selection lives in agent frontmatter (agents/*.md).
+# To change a model, edit the agent file and re-run sync-agents.sh.
+
+agents:
+  council:
+    - Developer
+    - Database
+    - DevOps
+    - DocumentationWriter
+    - Tester
+    - SecurityArchitect
+    - Architect
+    - Designer
+    - ProductManager
+    - Analyst
+  standalone:
+    - Opponent
+    - Researcher
+
+councils:
+  developer:
+    description: Multi-perspective software development council
+    roles:
+      - Developer
+      - Database
+      - DevOps
+      - DocumentationWriter
+      - Tester
+      - SecurityArchitect
+  generic:
+    description: PAI-style 3-round debate council
+    roles:
+      - Architect
+      - Designer
+      - Developer
+      - Researcher
+  product:
+    description: Product requirements and strategy council
+    roles:
+      - ProductManager
+      - Designer
+      - Developer
+      - Analyst
+  knowledge:
+    description: Knowledge management and vault organization council
+    roles:
+      - DocumentationWriter
+      - Architect
+      - Researcher
