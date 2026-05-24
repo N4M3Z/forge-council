@@ -1,129 +1,116 @@
 # forge-council default configuration.
 # Override: create config.yaml (gitignored) with only the fields you want to change.
 #
-# defaults.yaml is authoritative for model tier and tools. Agent frontmatter provides the baseline.
-# To change a model, edit the agent file and re-run sync-agents.sh.
+# defaults.yaml is the single source of truth for deployment config (model, tools, scope).
+# Agent frontmatter provides name, description, version. Everything else comes from here.
+
+# Agent teams: disabled | enabled
+# - disabled: council skills check CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS env at runtime
+# - enabled: @AgentTeams.md in CLAUDE.md tells Claude to use teams directly
+teams: enabled
 
 agents:
-  council:
-    - Developer
-    - Database
-    - DevOps
-    - DocumentationWriter
-    - Tester
-    - SecurityArchitect
-    - Architect
-    - Designer
-    - ProductManager
-    - Analyst
-  standalone:
-    - Opponent
-    - Researcher
-    - ForensicAgent
+    TheOpponent:
+        model: strong
+        tools: Read, Grep, Glob, WebSearch
+        scope: workspace
 
-councils:
-  developer:
-    description: Multi-perspective software development council
-    roles:
-      - Developer
-      - Database
-      - DevOps
-      - DocumentationWriter
-      - Tester
-      - SecurityArchitect
-  generic:
-    description: PAI-style 3-round debate council
-    roles:
-      - Architect
-      - Designer
-      - Developer
-      - Researcher
-  product:
-    description: Product requirements and strategy council
-    roles:
-      - ProductManager
-      - Designer
-      - Developer
-      - Analyst
-  knowledge:
-    description: Knowledge management and vault organization council
-    roles:
-      - DocumentationWriter
-      - Architect
-      - Researcher
+    WebResearcher:
+        model: fast
+        tools: Read, Grep, Glob, WebSearch, WebFetch
+        scope: workspace
 
-# Model Tiers - mappings for semantic tiers
-models:
-  fast: sonnet
-  strong: opus
+    SoftwareDeveloper:
+        model: fast
+        tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
 
-# Provider-specific overrides and whitelists
-gemini:
-  models:
-    - gemini-2.0-flash
-    - gemini-2.5-flash
-    - gemini-2.5-pro
-  fast: gemini-2.0-flash
-  strong: gemini-2.5-pro
+    DatabaseEngineer:
+        model: fast
+        tools: Read, Grep, Glob, Bash
 
-claude:
-  models:
-    - sonnet
-    - opus
-    - haiku
-    - claude-sonnet-4-6
-  fast: sonnet
-  strong: opus
+    DevOpsEngineer:
+        model: fast
+        tools: Read, Grep, Glob, Bash
 
-# Agent configurations: model tier and tools
-Developer:
-  model: fast
-  tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
-Database:
-  model: fast
-  tools: Read, Grep, Glob, Bash
-DevOps:
-  model: fast
-  tools: Read, Grep, Glob, Bash
-DocumentationWriter:
-  model: fast
-  tools: Read, Grep, Glob
-Tester:
-  model: fast
-  tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
-SecurityArchitect:
-  model: strong
-  tools: Read, Grep, Glob, Bash, WebSearch
-Architect:
-  model: fast
-  tools: Read, Grep, Glob
-Designer:
-  model: fast
-  tools: Read, Grep, Glob
-ProductManager:
-  model: fast
-  tools: Read, Grep, Glob, WebSearch, WebFetch
-Analyst:
-  model: fast
-  tools: Read, Grep, Glob, WebSearch, WebFetch
-Opponent:
-  model: strong
-  tools: Read, Grep, Glob
-Researcher:
-  model: fast
-  tools: Read, Grep, Glob, WebSearch, WebFetch
-ForensicAgent:
-  model: strong
-  tools: Read, Grep, Glob, Bash, WebSearch
+    DocumentationWriter:
+        model: fast
+        tools: Read, Grep, Glob
 
-# Skill configurations: scope overrides
-Council:
-  scope: workspace
-Demo:
-  scope: workspace
-DeveloperCouncil:
-  scope: workspace
-ProductCouncil:
-  scope: workspace
-KnowledgeCouncil:
-  scope: workspace
+    QaTester:
+        model: fast
+        tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
+
+    SecurityArchitect:
+        model: strong
+        tools: Read, Grep, Glob, Bash, WebSearch
+
+    SystemArchitect:
+        model: fast
+        tools: Read, Grep, Glob
+
+    UxDesigner:
+        model: fast
+        tools: Read, Grep, Glob
+
+    ProductManager:
+        model: fast
+        tools: Read, Grep, Glob, WebSearch, WebFetch
+
+    DataAnalyst:
+        model: fast
+        tools: Read, Grep, Glob, WebSearch, WebFetch
+
+    ForensicAgent:
+        model: strong
+        tools: Read, Grep, Glob, Bash, WebSearch
+
+skills:
+    DeveloperCouncil:
+        scope: workspace
+        roles:
+            - SoftwareDeveloper
+            - DatabaseEngineer
+            - DevOpsEngineer
+            - DocumentationWriter
+            - QaTester
+            - SecurityArchitect
+
+    DebateCouncil:
+        scope: workspace
+        roles:
+            - SystemArchitect
+            - UxDesigner
+            - SoftwareDeveloper
+            - WebResearcher
+
+    ProductCouncil:
+        scope: workspace
+        roles:
+            - ProductManager
+            - UxDesigner
+            - SoftwareDeveloper
+            - DataAnalyst
+
+    KnowledgeCouncil:
+        scope: workspace
+        roles:
+            - DocumentationWriter
+            - SystemArchitect
+            - WebResearcher
+
+providers:
+    gemini:
+        models:
+            - gemini-2.0-flash
+            - gemini-2.5-flash
+            - gemini-2.5-pro
+        fast: gemini-2.0-flash
+        strong: gemini-2.5-pro
+
+    claude:
+        models:
+            - claude-opus-4.6
+            - claude-haiku-4.6
+            - claude-sonnet-4-6
+        fast: claude-sonnet-4-6
+        strong: claude-opus-4.6

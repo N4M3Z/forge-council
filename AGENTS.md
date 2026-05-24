@@ -51,14 +51,14 @@ codex features list
 Note: one-off CLI overrides (`--enable` / `--disable`) can temporarily override
 saved config values for that run.
 
-For Codex, specialists are used as **explicit sub-agents**. Installing agents/skills does not auto-run them. Invoke them directly in prompts (for example: `Task: Developer — [request]`, `Task: SecurityArchitect — [request]`) or through the council skills.
+For Codex, specialists are used as **explicit sub-agents**. Installing agents/skills does not auto-run them. Invoke them directly in prompts (for example: `Task: SoftwareDeveloper — [request]`, `Task: SecurityArchitect — [request]`) or through the council skills.
 
 ## Project Structure
 
 ```
 agents/              # 13 agent definitions (12 rostered + ForensicAgent)
 lib/                 # git submodule -> forge-lib (shell utilities)
-skills/              # 5 skill dirs: Council, Demo, DeveloperCouncil, ProductCouncil, KnowledgeCouncil
+skills/              # 5 skill dirs: DebateCouncil, Demo, DeveloperCouncil, ProductCouncil, KnowledgeCouncil
 defaults.yaml        # Agent roster + council composition (committed)
 config.yaml          # User overrides (gitignored, same structure as defaults)
 module.yaml          # Module metadata (name, version, description)
@@ -70,35 +70,34 @@ module.yaml          # Module metadata (name, version, description)
 
 ### Frontmatter (YAML between `---` delimiters)
 
-Required keys: `title`, `description`, `claude.name`, `claude.model`,
-`claude.description`, `claude.tools`.
+Required keys: `name` (PascalCase, matches filename), `description`, `version`.
+
+Deployment config (model, tools, scope) lives in `defaults.yaml`, not in agent frontmatter.
 
 ```yaml
 ---
-title: Developer
-description: Senior developer specialist for implementation quality, patterns, and correctness
-claude.name: Developer
-claude.model: sonnet
-claude.description: "Senior developer specialist -- implementation quality, patterns, correctness. USE WHEN code review, implementation quality, design patterns, refactoring assessment."
-claude.tools: Read, Grep, Glob, Bash, Write, Edit
+name: SoftwareDeveloper
+description: "Senior developer specialist -- implementation quality, patterns, correctness. USE WHEN code review, implementation quality, design patterns, refactoring assessment."
+version: 0.3.0
 ---
 ```
 
-### Tool and model assignments
+### Tool and model assignments (from defaults.yaml)
 
 | Tools | Agents |
 |-------|--------|
-| `Read, Grep, Glob` | Architect, Designer, DocumentationWriter, Opponent |
-| `Read, Grep, Glob, Bash` | Database, DevOps, SecurityArchitect, ForensicAgent |
-| `Read, Grep, Glob, Bash, Write, Edit` | Developer, Tester |
-| `Read, Grep, Glob, WebSearch, WebFetch` | Researcher, ProductManager, Analyst |
+| `Read, Grep, Glob` | SystemArchitect, UxDesigner, DocumentationWriter |
+| `Read, Grep, Glob, WebSearch` | TheOpponent |
+| `Read, Grep, Glob, Bash` | DatabaseEngineer, DevOpsEngineer, SecurityArchitect, ForensicAgent |
+| `Read, Grep, Glob, Bash, Write, Edit, WebSearch` | SoftwareDeveloper, QaTester |
+| `Read, Grep, Glob, WebSearch, WebFetch` | WebResearcher, ProductManager, DataAnalyst |
 
-All agents use `sonnet` except `Opponent`, `SecurityArchitect`, and `ForensicAgent` which use `opus`.
+Model tiers (`fast`/`strong`) and tool assignments live in `defaults.yaml`. Override per-agent with `config.yaml`.
 
 ### Body structure (in order)
 
 1. Blockquote summary (one sentence, ends with "Shipped with forge-council.")
-2. `## Role`, `## Expertise`, `## Personality` (optional -- Opponent, Researcher, SecurityArchitect only)
+2. `## Role`, `## Expertise`, `## Personality` (optional -- TheOpponent, WebResearcher, SecurityArchitect only)
 3. `## Instructions` -- detailed steps with `###` subsections
 4. `## Output Format` -- markdown template in a fenced code block
 5. `## Constraints` -- bullet list; must include the honesty clause ("If X is
@@ -128,12 +127,11 @@ fallback. Main session IS the moderator (never spawn one). Maximum roster size 7
 
 | Context | Convention | Examples |
 |---------|-----------|---------|
-| Agent filenames | `PascalCase.md` | `Developer.md`, `SecurityArchitect.md` |
-| `claude.name` | PascalCase, matches filename | `Developer`, `SecurityArchitect` |
-| `claude.model` | lowercase short form | `sonnet`, `opus` |
-| Skill directories | PascalCase | `Council/`, `DeveloperCouncil/` |
-| Skill files | Always `SKILL.md` | `skills/Council/SKILL.md` |
-| Skill metadata | Always `SKILL.yaml` | `skills/Council/SKILL.yaml` |
+| Agent filenames | `PascalCase.md` | `SoftwareDeveloper.md`, `SecurityArchitect.md` |
+| `name` | PascalCase, matches filename | `SoftwareDeveloper`, `SecurityArchitect` |
+| Skill directories | PascalCase | `DebateCouncil/`, `DeveloperCouncil/` |
+| Skill files | Always `SKILL.md` | `skills/DebateCouncil/SKILL.md` |
+| Skill metadata | Always `SKILL.yaml` | `skills/DebateCouncil/SKILL.yaml` |
 | Shell functions | `lowercase_snake_case` | `fm_value`, `deploy_agent` |
 | Shell constants | `UPPER_SNAKE_CASE` | `FORGE_LIB`, `AGENTS_SRC` |
 | YAML keys | lowercase | `developer`, `generic`, `product` |
@@ -162,7 +160,7 @@ forge-lib submodule (`lib/`) provides: `frontmatter.sh` (`fm_value`, `fm_body`,
 - Sidecar behavior is implemented via `defaults.yaml` + `config.yaml`.
 - `module.yaml` -- module metadata. Update `version` on releases.
 - Two-space indentation, unquoted string values, PascalCase agent names.
-- Model selection lives in agent frontmatter, NOT in YAML config.
+- Model and tool selection lives in `defaults.yaml`, NOT in agent frontmatter.
 - Keep `defaults.yaml` and council skill roster sections in sync. Current council
   runtime selection is defined in `skills/*/SKILL.md`.
 
@@ -184,8 +182,8 @@ test. Commit: `feat: add YourAgent for [domain]`.
 Keep step numbering intact. If changing roster logic, update both the skill and
 `defaults.yaml`. Test with `/Demo` or a council invocation before committing.
 
-**Updating models or tools:** Edit agent frontmatter (`claude.model` or
-`claude.tools`), then re-deploy with `bash lib/install-agents.sh agents --clean`.
+**Updating models or tools:** Edit `defaults.yaml` (or `config.yaml` override),
+then re-deploy with `lib/bin/install-agents agents --clean`.
 Restart Claude Code for changes to take effect.
 
 ## Git Conventions

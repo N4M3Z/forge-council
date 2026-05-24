@@ -6,17 +6,17 @@
 
 ### Global (user)
 ```bash
-ls ~/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
-ls ~/.codex/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
-ls ~/.gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
+ls ~/.claude/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md
+ls ~/.codex/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md
+ls ~/.gemini/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md
 ```
 (Only if installed with `SCOPE=user` or `SCOPE=all`)
 
 ### Local (workspace)
 ```bash
-ls .claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
-ls .gemini/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
-ls .codex/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
+ls .claude/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md
+ls .gemini/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md
+ls .codex/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md
 ```
 (Default for `make install`)
 
@@ -26,7 +26,7 @@ Expected: all 13 files present in the targeted directory.
 
 ```bash
 # All 13 agents deployed (check targeted directory)
-ls .gemini/agents/ | grep -E "^(Developer|Database|DevOps|DocumentationWriter|Tester|SecurityArchitect|Architect|Designer|ProductManager|Analyst|Opponent|Researcher|ForensicAgent)\.md$" | wc -l
+ls .gemini/agents/ | grep -E "^(SoftwareDeveloper|DatabaseEngineer|DevOpsEngineer|DocumentationWriter|QaTester|SecurityArchitect|SystemArchitect|UxDesigner|ProductManager|DataAnalyst|TheOpponent|WebResearcher|ForensicAgent)\.md$" | wc -l
 # Should output: 13
 
 # Each agent has synced-from header
@@ -38,8 +38,8 @@ grep -l "^# synced-from:" .gemini/agents/*.md | wc -l
 
 ```bash
 # Verify Gemini agents use whitelisted models (not Claude names)
-grep "^model:" .gemini/agents/Developer.md
-# Expected: model: gemini-1.5-flash (or other whitelisted Gemini model)
+grep "^model:" .gemini/agents/SoftwareDeveloper.md
+# Expected: model: gemini-2.0-flash (or other whitelisted Gemini model)
 ```
 
 ## No stale agents
@@ -53,13 +53,13 @@ ls .gemini/agents/ | grep -i "^Council" || echo "Clean — no stale Council agen
 
 ```bash
 ls skills/*/SKILL.md
-# Should list: Council, Demo, DeveloperCouncil, ProductCouncil, KnowledgeCouncil
+# Should list: DebateCouncil, Demo, DeveloperCouncil, ProductCouncil, KnowledgeCouncil
 ```
 
 ## Codex skills
 
 ```bash
-ls .codex/skills/{Council,Demo,DeveloperCouncil,ProductCouncil,KnowledgeCouncil}/SKILL.md
+ls .codex/skills/{DebateCouncil,Demo,DeveloperCouncil,ProductCouncil,KnowledgeCouncil}/SKILL.md
 ```
 
 Expected: all 5 council skills present after `make install-skills-codex` (workspace mode).
@@ -82,13 +82,13 @@ Invoke the demo to verify agents load correctly:
 
 Should display the full roster with all 13 agents and their correctly resolved models.
 
-For Codex specialist usage, explicitly invoke sub-agents (for example `Task: Developer — [request]`) or use council skills.
+For Codex specialist usage, explicitly invoke sub-agents (for example `Task: SoftwareDeveloper — [request]`) or use council skills.
 
 ## Expected results
 
 - All 13 agent files deployed to targeted directory
 - No orphaned `Council*` agent files
 - Agent names match filenames (PascalCase)
-- 5 skills discoverable (Council, Demo, DeveloperCouncil, ProductCouncil, KnowledgeCouncil)
+- 5 skills discoverable (DebateCouncil, Demo, DeveloperCouncil, ProductCouncil, KnowledgeCouncil)
 - Codex has 5 council skills installed by default
 - `/Demo` renders the agent roster without errors

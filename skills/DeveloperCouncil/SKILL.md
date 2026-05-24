@@ -1,5 +1,6 @@
 ---
 name: DeveloperCouncil
+version: 0.1.0
 description: "Convene a developer council — 3-round debate for code review, architecture, and debugging. USE WHEN multi-perspective code review, architecture decisions, team-based problem solving, developer council."
 argument-hint: "[task description, PR reference, file paths, or architectural question] [autonomous|interactive|quick]"
 ---
@@ -8,16 +9,7 @@ argument-hint: "[task description, PR reference, file paths, or architectural qu
 
 You are the **team lead** of a developer council. Your job is to convene the right specialists, run a structured 3-round debate where they respond to each other's findings, and synthesize into a unified verdict.
 
-## Step 1: Gate Check
-
-```bash
-echo "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-0}"
-```
-
-- If `1`: use agent teams (TeamCreate + parallel Task spawning)
-- If `0` or missing: fall back to sequential mode (see Step 8)
-
-## Step 2: Parse Input
+## Step 1: Parse Input
 
 The user's input describes what to council on. It can be:
 - **Code review**: file paths, PR reference, or "review X"
@@ -36,16 +28,16 @@ Detect **mode** from keywords:
 | "interactive", "step by step" | interactive | Pause after every round |
 | "quick", "quick check" | quick | Round 1 only + synthesis |
 
-## Step 3: Select Specialists
+## Step 2: Select Specialists
 
 Do NOT always spawn all specialists. Pick 2-6 relevant specialists based on the task:
 
 | Condition | Include |
 |-----------|---------|
-| Any code changes or implementation | `Developer` (always) |
-| Any code changes or implementation | `Tester` (always) |
-| Database schemas, queries, migrations, ORMs | `Database` |
-| CI/CD, deployment, infra, config | `DevOps` |
+| Any code changes or implementation | `SoftwareDeveloper` (always) |
+| Any code changes or implementation | `QaTester` (always) |
+| Database schemas, queries, migrations, ORMs | `DatabaseEngineer` |
+| CI/CD, deployment, infra, config | `DevOpsEngineer` |
 | Public API surface, README, breaking changes | `DocumentationWriter` |
 | Security assessment, threat modeling | `SecurityArchitect` |
 
@@ -53,12 +45,12 @@ Do NOT always spawn all specialists. Pick 2-6 relevant specialists based on the 
 
 **Lightweight shortcut**: For trivial tasks (single file change, small bug fix) with only 2 specialists, use quick mode automatically — one round is enough for focused reviews.
 
-## Step 4: Spawn Team
+## Step 3: Spawn Team
 
 1. **TeamCreate** with name `dev-council`
 2. For each selected specialist, spawn via **Task** tool:
    - `team_name: "dev-council"`
-   - `subagent_type: "{AgentName}"` (e.g., `Developer`, `Tester`, `SecurityArchitect`)
+   - `subagent_type: "{AgentName}"` (e.g., `SoftwareDeveloper`, `QaTester`, `SecurityArchitect`)
    - `name: "council-{role}"` (e.g., `council-dev`, `council-qa`, `council-security`)
    - `mode: "bypassPermissions"` for read-only agents, `"default"` for agents with write access
    - Prompt includes:
@@ -70,11 +62,11 @@ Do NOT always spawn all specialists. Pick 2-6 relevant specialists based on the 
 
 3. **TaskCreate** for each specialist
 
-## Step 5: Round 1 — Initial Findings
+## Step 4: Round 1 — Initial Findings
 
 Collect all specialist findings. Wait for all to report.
 
-**If quick mode**: Skip to Step 7.
+**If quick mode**: Skip to Step 6.
 
 **If checkpoint or interactive mode**: Present Round 1 findings to the user:
 
@@ -93,7 +85,7 @@ Ask via **AskUserQuestion**:
 - Question: "Round 1 findings above. Any context to add or focus to redirect before debate?"
 - Options: "Continue to debate", "Add context (free text)", "Skip to synthesis"
 
-## Step 6: Rounds 2 & 3 — Debate
+## Step 5: Rounds 2 & 3 — Debate
 
 ### Round 2: Cross-Specialist Challenges
 
@@ -131,7 +123,7 @@ ROUND 3 INSTRUCTION: Given the full discussion:
 
 Collect all Round 3 responses.
 
-## Step 7: Synthesize and Teardown
+## Step 6: Synthesize and Teardown
 
 Produce the verdict:
 
@@ -164,14 +156,14 @@ After synthesis:
 1. Send **shutdown_request** to each teammate
 2. **TeamDelete** to clean up
 
-## Step 8: Sequential Fallback
+## Step 7: Sequential Fallback
 
 If agent teams are not available:
 
-> **Gemini CLI Note**: In the Gemini CLI, the `Task` tool is replaced by direct `@`-invocation. Instead of spawning a task, invoke the specialist directly in your prompt using `@AgentName` (e.g., `Hey @Developer, please review...`). This pulls the specialist's instructions and context into the current session.
+> **Gemini CLI Note**: In the Gemini CLI, the `Task` tool is replaced by direct `@`-invocation. Instead of spawning a task, invoke the specialist directly in your prompt using `@AgentName` (e.g., `Hey @SoftwareDeveloper, please review...`). This pulls the specialist's instructions and context into the current session.
 
 1. **Round 1**: For each specialist, use **Task** tool (no `team_name`) with `subagent_type: "{AgentName}"`. Collect results.
-2. **[Checkpoint]**: Present findings, ask user (same as Step 5).
+2. **[Checkpoint]**: Present findings, ask user (same as Step 4).
 3. **Round 2**: For each, spawn new Task with Round 1 transcript + Round 2 instruction.
 4. **Round 3**: For each, spawn new Task with Round 1+2 transcript + Round 3 instruction.
 5. Synthesize using the same verdict format.
@@ -179,7 +171,7 @@ If agent teams are not available:
 ## Constraints
 
 - Never spawn agents the task doesn't need — each agent is a full context window
-- Always include `Developer` and `Tester` for code-related tasks
+- Always include `SoftwareDeveloper` and `QaTester` for code-related tasks
 - The main session IS the lead — do not spawn a `council-lead` agent
 - Provide specific file paths and context in spawn prompts — agents don't inherit your conversation
 - In Round 2+, agents MUST reference other specialists by name — generic responses should be flagged

@@ -1,5 +1,6 @@
 ---
 name: Demo
+version: 0.1.0
 description: "Showcase forge-council — demonstrate the agent roster, council flow, and standalone specialists. USE WHEN demo, showcase, show agents, what can forge-council do."
 argument-hint: "[optional: 'council' for live council demo, 'agents' for roster walkthrough]"
 ---
@@ -43,9 +44,8 @@ SKILL_DIR="$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENTS_DIR="$(builtin cd "$SKILL_DIR/../../agents" && pwd)"
 
 for f in "$AGENTS_DIR"/*.md; do
-  name=$(grep "^claude.name:" "$f" | head -1 | awk -F': ' '{print $2}')
-  model=$(grep "^claude.model:" "$f" | head -1 | awk -F': ' '{print $2}')
-  desc=$(grep "^claude.description:" "$f" | head -1 | sed 's/^claude.description: *//' | sed 's/"//g' | cut -d'—' -f1)
+  name=$(grep "^name:" "$f" | head -1 | awk -F': ' '{print $2}')
+  desc=$(grep "^description:" "$f" | head -1 | sed 's/^description: *//' | sed 's/"//g' | cut -d'—' -f1)
   echo "$name|$model|$desc"
 done
 ```
@@ -56,37 +56,37 @@ Format as:
 ┌─────────────────────────────────────────────────────────┐
 │  DEVELOPER COUNCIL (/DeveloperCouncil)                  │
 ├──────────────────────┬──────────────────────────────────┤
-│ Developer            │ Implementation quality           │
-│ Database             │ Schema & query perf              │
-│ DevOps               │ CI/CD & deployment               │
+│ SoftwareDeveloper    │ Implementation quality           │
+│ DatabaseEngineer     │ Schema & query perf              │
+│ DevOpsEngineer       │ CI/CD & deployment               │
 │ DocumentationWriter  │ README & API docs                │
-│ Tester               │ Coverage & edge cases            │
+│ QaTester             │ Coverage & edge cases            │
 │ SecurityArchitect    │ Threat modeling                  │
 ├──────────────────────┴──────────────────────────────────┤
-│  GENERIC COUNCIL (/Council)                             │
+│  DEBATE COUNCIL (/DebateCouncil)                        │
 ├──────────────────────┬──────────────────────────────────┤
-│ Architect            │ System design                    │
-│ Designer             │ UX & user needs                  │
-│ Developer            │ Implementation reality           │
-│ Researcher           │ Data & precedent                 │
+│ SystemArchitect      │ System design                    │
+│ UxDesigner           │ UX & user needs                  │
+│ SoftwareDeveloper    │ Implementation reality           │
+│ WebResearcher        │ Data & precedent                 │
 ├──────────────────────┴──────────────────────────────────┤
 │  PRODUCT COUNCIL (/ProductCouncil)                      │
 ├──────────────────────┬──────────────────────────────────┤
 │ ProductManager       │ Requirements & roadmap           │
-│ Designer             │ UX & user needs                  │
-│ Developer            │ Tech feasibility                 │
-│ Analyst              │ Metrics & impact                 │
+│ UxDesigner           │ UX & user needs                  │
+│ SoftwareDeveloper    │ Tech feasibility                 │
+│ DataAnalyst          │ Metrics & impact                 │
 ├──────────────────────┴──────────────────────────────────┤
 │  KNOWLEDGE COUNCIL (/KnowledgeCouncil)                  │
 ├──────────────────────┬──────────────────────────────────┤
 │ DocumentationWriter  │ Note architecture                │
-│ Architect            │ Structural patterns              │
-│ Researcher           │ Evidence & precedent             │
+│ SystemArchitect      │ Structural patterns              │
+│ WebResearcher        │ Evidence & precedent             │
 ├──────────────────────┴──────────────────────────────────┤
 │  STANDALONE SPECIALISTS                                 │
 ├──────────────────────┬──────────────────────────────────┤
-│ Opponent             │ Devil's advocate (strong tier)   │
-│ Researcher           │ Deep web research                │
+│ TheOpponent          │ Devil's advocate (strong tier)   │
+│ WebResearcher        │ Deep web research                │
 │ ForensicAgent        │ PII & secret detection           │
 └──────────────────────┴──────────────────────────────────┘
 ```
@@ -96,10 +96,10 @@ Format as:
 Show the 3-round debate pattern with a concrete example:
 
 ```
-Example: /Council Should we use WebSockets or SSE for real-time updates?
+Example: /DebateCouncil Should we use WebSockets or SSE for real-time updates?
 
 What happens:
-  1. Lead selects: Architect, Designer, Developer, Researcher
+  1. Lead selects: SystemArchitect, UxDesigner, SoftwareDeveloper, WebResearcher
   2. ROUND 1: Each gives initial position (in parallel)
   3. [Checkpoint]: Lead shows positions, asks user for input
   4. ROUND 2: Each responds to others' points BY NAME (in parallel)
@@ -123,15 +123,15 @@ Task: SecurityArchitect — "Threat model the authentication system"
 → Executive summary, asset inventory, threat register, policy gaps, recommendations
 ```
 
-**Opponent** — stress-tests any idea or decision:
+**TheOpponent** — stress-tests any idea or decision:
 ```
-Task: Opponent — "We're planning to rewrite the backend in Rust"
+Task: TheOpponent — "We're planning to rewrite the backend in Rust"
 → Steel man, key challenges, blind spots, hardest questions, overall assessment
 ```
 
-**Researcher** — deep multi-query web research:
+**WebResearcher** — deep multi-query web research:
 ```
-Task: Researcher — "Current best practices for rate limiting in distributed systems"
+Task: WebResearcher — "Current best practices for rate limiting in distributed systems"
 → Decomposed queries, findings with confidence levels, sources, gaps
 ```
 
@@ -152,17 +152,17 @@ If no live demo was requested, end with:
 ```
 Ready to try it?
 
-  /Council [topic to debate]
+  /DebateCouncil [topic to debate]
   /DeveloperCouncil [code to review]
   /ProductCouncil [requirements to evaluate]
   /KnowledgeCouncil [knowledge management topic]
 
   Or invoke any specialist standalone:
-    Task tool → subagent_type: "Architect"
-    Task tool → subagent_type: "Opponent"
+    Task tool → subagent_type: "SystemArchitect"
+    Task tool → subagent_type: "TheOpponent"
     Task tool → subagent_type: "ProductManager"
 
-> **Gemini CLI Note**: In the Gemini CLI, standalone specialists are invoked directly using `@AgentName` (e.g., `@Architect`, `@Opponent`).
+> **Gemini CLI Note**: In the Gemini CLI, standalone specialists are invoked directly using `@AgentName` (e.g., `@SystemArchitect`, `@TheOpponent`).
 ```
 
 ## Constraints

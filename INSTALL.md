@@ -63,8 +63,8 @@ make install-skills-codex    # ./.codex/skills/ (SCOPE=workspace) or ~/.codex/sk
 
 In Codex, installed specialists are available as sub-agents, but they must be invoked explicitly.
 
-- Standalone specialist: `Task: Developer — [request]`
-- Council orchestration: `/Council`, `/DeveloperCouncil`, `/ProductCouncil`, `/KnowledgeCouncil`
+- Standalone specialist: `Task: SoftwareDeveloper — [request]`
+- Council orchestration: `/DebateCouncil`, `/DeveloperCouncil`, `/ProductCouncil`, `/KnowledgeCouncil`
 - If you do not explicitly ask for a specialist/sub-agent, the main session handles the task directly.
 
 ### 4. Enable Agent Teams (Claude Code Only)
@@ -97,7 +97,7 @@ Add the following to your `~/.gemini/settings.json` (or via `/settings`):
 Once enabled, follow these steps to use your specialists:
 
 1.  **Discovery**: Run `/agents refresh` (or `/skills reload`) to force a re-scan of the installed specialists.
-2.  **Verification**: Run `/agents list` (or `/skills list`) to see all available specialists (Developer, Architect, etc.) and council commands.
+2.  **Verification**: Run `/agents list` (or `/skills list`) to see all available specialists (SoftwareDeveloper, SystemArchitect, etc.) and council commands.
 3.  **Usage**: To launch a specialist standalone, use `/agents run <name> [query]`. You can also invoke councils via their slash commands (e.g., `/DeveloperCouncil` or `/Demo`).
 4.  **Councils**: Since Gemini CLI does not support parallel `TeamCreate`, council skills will run in **Sequential Simulation Mode**, where the lead agent adopts the specialists' personas one by one.
 
@@ -110,18 +110,18 @@ Agents require a session restart to be discovered.
 
 | Agent | Model | Council | Purpose |
 |-------|-------|---------|---------|
-| Developer | fast | dev, generic | Implementation quality, patterns, correctness |
-| Database | fast | dev | Schema design, query performance, migrations |
-| DevOps | fast | dev | CI/CD, deployment, monitoring, reliability |
-| DocumentationWriter | fast | dev | README quality, API docs, developer experience |
-| Tester | fast | dev | Test strategy, coverage, edge cases, regression |
+| SoftwareDeveloper | fast | dev, debate | Implementation quality, patterns, correctness |
+| DatabaseEngineer | fast | dev | Schema design, query performance, migrations |
+| DevOpsEngineer | fast | dev | CI/CD, deployment, monitoring, reliability |
+| DocumentationWriter | fast | dev, knowledge | README quality, API docs, developer experience |
+| QaTester | fast | dev | Test strategy, coverage, edge cases, regression |
 | SecurityArchitect | strong | dev | Threat modeling, security policy, architectural risk |
-| Architect | fast | generic | System design, boundaries, scalability, trade-offs |
-| Designer | fast | generic, product | UX, user needs, accessibility, interaction design |
+| SystemArchitect | fast | debate, knowledge | System design, boundaries, scalability, trade-offs |
+| UxDesigner | fast | debate, product | UX, user needs, accessibility, interaction design |
 | ProductManager | fast | product | Requirements clarity, roadmap alignment, market fit |
-| Analyst | fast | product | Success metrics, KPIs, measurement, business impact |
-| Opponent | strong | standalone | Devil's advocate, stress-test ideas and decisions |
-| Researcher | fast | standalone | Deep web research, multi-query synthesis, citations |
+| DataAnalyst | fast | product | Success metrics, KPIs, measurement, business impact |
+| TheOpponent | strong | standalone | Devil's advocate, stress-test ideas and decisions |
+| WebResearcher | fast | debate, knowledge | Deep web research, multi-query synthesis, citations |
 | ForensicAgent | strong | standalone | PII and secret detection forensic specialist |
 
 No compiled binaries — forge-council is pure markdown orchestration. Agents are markdown files deployed by scope across `.claude/.gemini/.codex` (workspace) and/or `~/.claude/~/.gemini/~/.codex` (user/all).
@@ -134,28 +134,27 @@ Ships with the agent roster and council composition:
 
 ```yaml
 agents:
-  council:
-    - Developer
-    - Database
-    - DevOps
-    - DocumentationWriter
-    - Tester
-    - SecurityArchitect
-    - Architect
-    - Designer
-    - ProductManager
-    - Analyst
-  standalone:
-    - Opponent
-    - Researcher
+  SoftwareDeveloper:
+    model: fast
+    tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
+  # ... 12 more agents
 
-councils:
-  developer:
-    roles: [Developer, Database, DevOps, DocumentationWriter, Tester, SecurityArchitect]
-  generic:
-    roles: [Architect, Designer, Developer, Researcher]
-  product:
-    roles: [ProductManager, Designer, Developer, Analyst]
+skills:
+  DeveloperCouncil:
+    scope: workspace
+    roles:
+      - SoftwareDeveloper
+      - DatabaseEngineer
+      - DevOpsEngineer
+      - DocumentationWriter
+      - QaTester
+      - SecurityArchitect
+  DebateCouncil:
+    scope: workspace
+    roles: [SystemArchitect, UxDesigner, SoftwareDeveloper, WebResearcher]
+  ProductCouncil:
+    scope: workspace
+    roles: [ProductManager, UxDesigner, SoftwareDeveloper, DataAnalyst]
 ```
 
 ### Module config override
@@ -163,15 +162,13 @@ councils:
 Create `config.yaml` (gitignored) to override:
 
 ```yaml
-# Example: remove a specialist from the council roster
+# Example: change a specialist's model tier
 agents:
-  council:
-    - Developer
-    - Tester
-    - DevOps
+  SoftwareDeveloper:
+    model: strong
 ```
 
-Model selection lives in agent frontmatter (`agents/*.md`). To change a model, edit the agent file and re-run the agent sync.
+Model and tool selection lives in `defaults.yaml`. To change, edit `defaults.yaml` (or `config.yaml` override) and re-run install.
 
 ## Updating
 

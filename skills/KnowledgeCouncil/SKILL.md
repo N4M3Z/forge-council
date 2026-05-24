@@ -1,5 +1,6 @@
 ---
 name: KnowledgeCouncil
+version: 0.1.0
 description: "Convene a knowledge management council — 3-round debate on vault organization, memory lifecycle, note architecture, and skill design. USE WHEN knowledge triage, memory promotion, vault organization, note lifecycle, idea graduation, archive decisions."
 argument-hint: "[topic or question to debate] [with vault|with dev|with opponent] [autonomous|interactive|quick]"
 ---
@@ -8,21 +9,12 @@ argument-hint: "[topic or question to debate] [with vault|with dev|with opponent
 
 You are the **moderator** of a knowledge management council. Your job is to convene specialists who understand documentation, system architecture, and research methodology to debate vault organization, memory lifecycle, note triage, and skill design decisions. Run a structured 3-round debate and synthesize into a clear recommendation.
 
-## Step 1: Gate Check
-
-```bash
-echo "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-0}"
-```
-
-- If `1`: use agent teams (TeamCreate + parallel Task spawning)
-- If `0` or missing: fall back to sequential mode (see Step 8)
-
-## Step 2: Parse Input
+## Step 1: Parse Input
 
 Extract from the user's input:
 
 1. **Topic**: The knowledge management question to debate
-2. **Optional extras**: "with vault" → add VaultOrganizer, "with dev" → add Developer, "with opponent" → add Opponent
+2. **Optional extras**: "with vault" → add VaultOrganizer, "with dev" → add SoftwareDeveloper, "with opponent" → add TheOpponent
 3. **Mode**: Detected from keywords (default if none specified):
 
 | Keyword | Mode | Behavior |
@@ -32,17 +24,17 @@ Extract from the user's input:
 | "interactive", "step by step" | interactive | Pause after every round |
 | "quick", "quick check" | quick | Round 1 only + synthesis |
 
-## Step 3: Select Roster
+## Step 2: Select Roster
 
-**Default (always)**: DocumentationWriter, Architect, Researcher
+**Default (always)**: DocumentationWriter, SystemArchitect, WebResearcher
 
 **Optional extras** (added when requested or clearly relevant):
 
 | Condition | Add |
 |-----------|-----|
 | "with vault", vault structure/organization topics | VaultOrganizer |
-| "with dev", implementation/tooling topics | Developer |
-| "with opponent", high-stakes decision, major restructure | Opponent |
+| "with dev", implementation/tooling topics | SoftwareDeveloper |
+| "with opponent", high-stakes decision, major restructure | TheOpponent |
 
 VaultOrganizer is a Task subagent type — only include it if the runtime supports it. If spawning fails, proceed with the default roster.
 
@@ -51,18 +43,18 @@ VaultOrganizer is a Task subagent type — only include it if the runtime suppor
 Each specialist brings a distinct lens to knowledge management:
 
 - **DocumentationWriter**: Note structure, naming conventions, self-documenting organization, progressive information architecture. Asks: "Can someone find and understand this without context?"
-- **Architect**: System-level patterns, lifecycle design, relationship graphs, separation of concerns. Asks: "Does this scale? Does it compose? Where are the boundaries?"
-- **Researcher**: Best practices, prior art, evidence-based approaches, methodology. Asks: "What does the literature say? What have others tried?"
+- **SystemArchitect**: System-level patterns, lifecycle design, relationship graphs, separation of concerns. Asks: "Does this scale? Does it compose? Where are the boundaries?"
+- **WebResearcher**: Best practices, prior art, evidence-based approaches, methodology. Asks: "What does the literature say? What have others tried?"
 - **VaultOrganizer** (optional): File placement, tagging consistency, deduplication, migration paths. Asks: "Is this in the right place? Are there duplicates? What's the migration plan?"
-- **Developer** (optional): Implementation feasibility, tooling support, automation potential. Asks: "Can we build this? What breaks?"
-- **Opponent** (optional): Challenge assumptions, find failure modes, stress-test proposals. Asks: "What if this is wrong? What's the worst case?"
+- **SoftwareDeveloper** (optional): Implementation feasibility, tooling support, automation potential. Asks: "Can we build this? What breaks?"
+- **TheOpponent** (optional): Challenge assumptions, find failure modes, stress-test proposals. Asks: "What if this is wrong? What's the worst case?"
 
-## Step 4: Spawn Team
+## Step 3: Spawn Team
 
 1. **TeamCreate** with name `knowledge-council`
 2. For each roster member, spawn via **Task** tool:
    - `team_name: "knowledge-council"`
-   - `subagent_type: "{AgentName}"` (e.g., `DocumentationWriter`, `Architect`, `Researcher`)
+   - `subagent_type: "{AgentName}"` (e.g., `DocumentationWriter`, `SystemArchitect`, `WebResearcher`)
    - `name: "council-{role}"` (e.g., `council-docs`, `council-arch`, `council-research`)
    - `mode: "bypassPermissions"`
    - Prompt includes:
@@ -73,11 +65,11 @@ Each specialist brings a distinct lens to knowledge management:
 
 3. **TaskCreate** for each specialist
 
-## Step 5: Round 1 — Initial Positions
+## Step 4: Round 1 — Initial Positions
 
 Collect all specialist positions via SendMessage. Wait for all to report.
 
-**If quick mode**: Skip to Step 7 (synthesis).
+**If quick mode**: Skip to Step 6 (synthesis).
 
 **If checkpoint or interactive mode**: Present Round 1 positions to the user:
 
@@ -85,17 +77,17 @@ Collect all specialist positions via SendMessage. Wait for all to report.
 ### Round 1: Initial Positions
 
 **DocumentationWriter**: [position summary]
-**Architect**: [position summary]
-**Researcher**: [position summary]
+**SystemArchitect**: [position summary]
+**WebResearcher**: [position summary]
 ```
 
 Then ask via **AskUserQuestion**:
 - Question: "Round 1 positions above. Any context to add or focus to redirect before the debate rounds?"
 - Options: "Continue to debate", "Add context (free text)", "Skip to synthesis (Round 1 only)"
 
-If user adds context, include it in Round 2 prompts. If user skips, go to Step 7.
+If user adds context, include it in Round 2 prompts. If user skips, go to Step 6.
 
-## Step 6: Rounds 2 & 3 — Debate
+## Step 5: Rounds 2 & 3 — Debate
 
 ### Round 2: Responses & Challenges
 
@@ -133,7 +125,7 @@ ROUND 3 INSTRUCTION: Given the full discussion, identify:
 
 Collect all Round 3 responses.
 
-## Step 7: Synthesize and Teardown
+## Step 6: Synthesize and Teardown
 
 Produce the final verdict:
 
@@ -168,12 +160,12 @@ After synthesis:
 1. Send **shutdown_request** to each teammate
 2. **TeamDelete** to clean up
 
-## Step 8: Sequential Fallback
+## Step 7: Sequential Fallback
 
 If agent teams are not available:
 
 1. **Round 1**: For each roster member, use **Task** tool (no `team_name`) with `subagent_type: "{AgentName}"`. Collect results.
-2. **[Checkpoint]**: Present positions, ask user (same as Step 5).
+2. **[Checkpoint]**: Present positions, ask user (same as Step 4).
 3. **Round 2**: For each, spawn new Task with Round 1 transcript + Round 2 instruction.
 4. **Round 3**: For each, spawn new Task with Round 1+2 transcript + Round 3 instruction.
 5. Synthesize using the same verdict format.

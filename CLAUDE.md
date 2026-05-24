@@ -32,7 +32,7 @@ No automated tests or CI. Verification is manual per `VERIFY.md` plus `make veri
 
 ```
 agents/           13 specialist markdown files (frontmatter + structured body)
-skills/           5 skill dirs: Council, DeveloperCouncil, ProductCouncil, KnowledgeCouncil, Demo
+skills/           5 skill dirs: DebateCouncil, Demo, DeveloperCouncil, KnowledgeCouncil, ProductCouncil
 lib/              git submodule -> forge-lib (Rust binaries for deployment + validation)
 defaults.yaml     canonical agent roster + council compositions
 config.yaml       user overrides (gitignored), same structure as defaults
@@ -46,9 +46,13 @@ Skills define the orchestration. The main session IS the moderator (never spawn 
 
 Parallel council execution requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json` env. Without it, same debate runs sequentially.
 
+@AgentTeams.md
+
 ### Agent Files (`agents/*.md`)
 
-YAML frontmatter with required keys: `title`, `description`, `claude.name` (PascalCase, matches filename), `claude.model` (sonnet/opus), `claude.description` (pattern: `"Role -- capabilities. USE WHEN triggers."`), `claude.tools`.
+YAML frontmatter with required keys: `name` (PascalCase, matches filename), `description` (pattern: `"Role -- capabilities. USE WHEN triggers."`), `version`.
+
+Deployment config (model, tools, scope) lives in `defaults.yaml`, not in agent frontmatter. Agent files contain only identity (name, description, version) and body instructions.
 
 Body structure in order: blockquote summary (ends with "Shipped with forge-council."), `## Role`, `## Expertise`, `## Personality` (optional), `## Instructions`, `## Output Format`, `## Constraints`.
 
@@ -58,16 +62,17 @@ Constraints must include the honesty clause ("If X is solid, say so") and team c
 
 | Tools | Agents |
 |-------|--------|
-| Read, Grep, Glob | Architect, Designer, DocumentationWriter, Opponent |
-| Read, Grep, Glob, Bash | Database, DevOps, SecurityArchitect, ForensicAgent |
-| Read, Grep, Glob, Bash, Write, Edit | Developer, Tester |
-| Read, Grep, Glob, WebSearch, WebFetch | Researcher, ProductManager, Analyst |
+| Read, Grep, Glob | SystemArchitect, UxDesigner, DocumentationWriter |
+| Read, Grep, Glob, WebSearch | TheOpponent |
+| Read, Grep, Glob, Bash | DatabaseEngineer, DevOpsEngineer, SecurityArchitect, ForensicAgent |
+| Read, Grep, Glob, Bash, Write, Edit, WebSearch | SoftwareDeveloper, QaTester |
+| Read, Grep, Glob, WebSearch, WebFetch | WebResearcher, ProductManager, DataAnalyst |
 
-All agents use `sonnet` except Opponent which uses `opus`. Model selection lives in agent frontmatter, not in YAML config.
+Model tiers (`fast`/`strong`) and tool assignments live in `defaults.yaml`. Override per-agent with `config.yaml`.
 
 ### Skill Files (`skills/*/SKILL.md` + `SKILL.yaml`)
 
-`SKILL.md` contains orchestration instructions. `SKILL.yaml` contains metadata and provider routing (`claude`, `gemini`, `codex`). Skills follow numbered steps (Step 1-8). Debate modes detected from user keywords: checkpoint (default), autonomous ("fast"), interactive ("step by step"), quick ("quick check").
+`SKILL.md` contains orchestration instructions. `SKILL.yaml` contains metadata and provider routing (`claude`, `gemini`, `codex`). Skills follow numbered steps (Step 1-7). Debate modes detected from user keywords: checkpoint (default), autonomous ("fast"), interactive ("step by step"), quick ("quick check").
 
 ### Configuration
 
@@ -85,7 +90,7 @@ Git submodule from `forge-lib`. Provides Rust binaries: `install-agents` (multi-
 
 | Context | Convention |
 |---------|-----------|
-| Agent filenames / claude.name | PascalCase (`SecurityArchitect.md`) |
+| Agent filenames / name | PascalCase (`SecurityArchitect.md`) |
 | Skill directories | PascalCase (`DeveloperCouncil/`) |
 | Shell functions | lowercase_snake_case |
 | Shell constants | UPPER_SNAKE_CASE |
@@ -110,4 +115,4 @@ Conventional Commits: `type: description`. Lowercase, no trailing period, no sco
 
 **Modify skill**: Edit `skills/Name/SKILL.md` + `SKILL.yaml` -> keep step numbering intact -> if changing roster, update both skill and `defaults.yaml` -> test with `/Demo`.
 
-**Update model/tools**: Edit agent frontmatter -> `lib/bin/install-agents agents --clean` -> restart session.
+**Update model/tools**: Edit `defaults.yaml` (or `config.yaml` override) -> `lib/bin/install-agents agents --clean` -> restart session.

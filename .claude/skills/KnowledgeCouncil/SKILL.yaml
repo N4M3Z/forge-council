@@ -9,5 +9,5 @@ providers:
   codex:
     enabled: true
 generation:
-  source: manual
-  synced-from: skills/KnowledgeCouncil/SKILL.md
+  method: manual
+  source: skills/KnowledgeCouncil/SKILL.md

@@ -6,16 +6,17 @@ This directory contains **forge-council**, a multi-agent orchestration framework
 
 - **Purpose:** Provide a framework for "councils" of AI agents to debate topics across three rounds: Initial Positions, Challenges, and Convergence.
 - **Architecture:**
-    - **Agents (`agents/`):** 13 specialized Markdown-defined agents (e.g., Developer, ForensicAgent, Architect, Researcher, Opponent).
+    - **Agents (`agents/`):** 13 specialized Markdown-defined agents (e.g., SoftwareDeveloper, ForensicAgent, SystemArchitect, WebResearcher, TheOpponent).
     - **Skills (`skills/`):** Orchestration logic (prompts) that guide the "lead" agent through the debate process for specific council types.
     - **Configuration (`defaults.yaml`):** Defines default agent rosters, council compositions, and specialist-specific tool overrides (sidecars), including provider-specific model tiers and whitelists.
     - **Ecosystem:** Part of the "forge" suite of tools, intended to be used as a standalone plugin or a forge-core module.
 
 ## Key Councils & Skills
 
-- `/Council`: Generic cross-domain debate (Architect, Designer, Developer, Researcher).
+- `/DebateCouncil`: Generic cross-domain debate (SystemArchitect, UxDesigner, SoftwareDeveloper, WebResearcher).
 - `/DeveloperCouncil`: Specialized for code review, architecture, and debugging (up to 6 dev-focused specialists).
-- `/ProductCouncil`: Focused on requirements, strategy, and business impact (PM, Designer, Developer, Analyst).
+- `/ProductCouncil`: Focused on requirements, strategy, and business impact (ProductManager, UxDesigner, SoftwareDeveloper, DataAnalyst).
+- `/KnowledgeCouncil`: Knowledge architecture and memory lifecycle (DocumentationWriter, SystemArchitect, WebResearcher).
 - `/Demo`: An interactive showcase of the framework's capabilities.
 
 ## Getting Started & Commands
@@ -48,7 +49,7 @@ Invoke a council or specialist by using its name or slash command. If they don't
 
 ## Development Conventions
 
-- **Agent Definitions:** Agents are defined in `agents/*.md` using YAML frontmatter for metadata (name, model, description, tools) and Markdown for behavioral instructions (Role, Expertise, Constraints).
+- **Agent Definitions:** Agents are defined in `agents/*.md` using YAML frontmatter for identity (name, description, version) and Markdown for behavioral instructions (Role, Expertise, Constraints). Deployment config (model, tools, scope) lives in `defaults.yaml`.
 - **Skill Definitions:** Skills in `skills/*/SKILL.md` define the orchestration logic. They follow a standard multi-step process: Gate Check -> Parse Input -> Select Specialists -> Spawn Team -> 3-Round Debate -> Synthesis.
 - **Agent Teams:** The framework prefers using the `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` feature for parallel agent execution. If disabled, it falls back to sequential task execution.
 - **Modularity:** Avoid hardcoding rosters in skills; refer to `defaults.yaml` or allow the lead to select relevant specialists based on the task context.

@@ -5,7 +5,7 @@
 forge-council is a pure-markdown multi-agent orchestration framework for Claude Code. It provides 13 specialist agents that run 3-round debates on topics, organized into four council types:
 - **DeveloperCouncil**: Code review, architecture, debugging (6 dev specialists)
 - **ProductCouncil**: Requirements, features, strategy (PM, Designer, Dev, Analyst)
-- **Council**: Cross-domain debate (Architect, Designer, Developer, Researcher)
+- **DebateCouncil**: Cross-domain debate (SystemArchitect, UxDesigner, SoftwareDeveloper, WebResearcher)
 - **KnowledgeCouncil**: Knowledge architecture and memory lifecycle decisions
 
 No compiled code, no external runtimes — only markdown agent definitions, YAML config, shell scripts, and Claude Code skills.
@@ -15,18 +15,19 @@ No compiled code, no external runtimes — only markdown agent definitions, YAML
 ### Core Components
 
 **agents/** — 13 specialist agents (each a markdown file with YAML frontmatter + structured instructions):
-- Developer, Database, DevOps, DocumentationWriter, Tester, SecurityArchitect (dev track)
-- Architect, Designer, ProductManager, Analyst (cross-domain)
-- Opponent (opus model, devil's advocate)
-- Researcher (web search + synthesis)
-- ForensicAgent (opus model, PII and secret detection)
+- SoftwareDeveloper, DatabaseEngineer, DevOpsEngineer, DocumentationWriter, QaTester, SecurityArchitect (dev track)
+- SystemArchitect, UxDesigner, ProductManager, DataAnalyst (cross-domain)
+- TheOpponent (strong model, devil's advocate)
+- WebResearcher (web search + synthesis)
+- ForensicAgent (strong model, PII and secret detection)
 
 Each agent has:
-- `claude.*` frontmatter: name (PascalCase), model (sonnet/opus), description, tools list
+- Frontmatter: `name` (PascalCase), `description`, `version`
+- Deployment config (model, tools, scope) in `defaults.yaml`
 - Body: Role, Expertise, Instructions, Output Format, Constraints
 
 **skills/** — 5 orchestration skills (each a SKILL.md with debate flow logic):
-- `/Council` — generic 3-round debate
+- `/DebateCouncil` — generic 3-round debate
 - `/DeveloperCouncil` — specialized code/architecture council
 - `/ProductCouncil` — specialized product/strategy council
 - `/KnowledgeCouncil` — knowledge architecture and memory lifecycle
@@ -65,17 +66,17 @@ Hooks/sync-agents.sh   # uses FORGE_LIB env var set by forge-core
 Run the checklist in VERIFY.md:
 ```bash
 # All 13 agents deployed?
-ls ~/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
+ls ~/.claude/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md
 
 # Each agent has synced-from header?
-grep -l "^# synced-from:" ~/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md | wc -l
+grep -l "^# synced-from:" ~/.claude/agents/{SoftwareDeveloper,DatabaseEngineer,DevOpsEngineer,DocumentationWriter,QaTester,SecurityArchitect,SystemArchitect,UxDesigner,ProductManager,DataAnalyst,TheOpponent,WebResearcher,ForensicAgent}.md | wc -l
 # Expected: 13
 
 # No stale Council-prefixed agents?
 ls ~/.claude/agents/ | grep -i "^Council" || echo "Clean"
 
 # 5 skills discoverable?
-ls skills/*/SKILL.md   # Expected: Council, Demo, DeveloperCouncil, KnowledgeCouncil, ProductCouncil
+ls skills/*/SKILL.md   # Expected: DebateCouncil, Demo, DeveloperCouncil, KnowledgeCouncil, ProductCouncil
 
 # Interactive check in Claude Code:
 /Demo agents
@@ -101,18 +102,17 @@ With `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, councils spawn agents in parallel
 Every agent file (`agents/*.md`) follows this structure:
 
 1. **Frontmatter** (YAML between `---` delimiters):
-   - `title`: Human-readable name
-   - `description`: What the agent does
-   - `claude.name`: PascalCase, must match filename (no .md)
-   - `claude.model`: Short form only (`sonnet` or `opus`, never full model ID)
-   - `claude.description`: Pattern: `"Role — capabilities. USE WHEN triggers."` (em-dash separated, USE WHEN clause for discoverability)
-   - `claude.tools`: Comma-separated list. Options: Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch
+   - `name`: PascalCase, must match filename (no .md)
+   - `description`: Pattern: `"Role -- capabilities. USE WHEN triggers."` (USE WHEN clause for discoverability)
+   - `version`: Semantic version (e.g., `0.3.0`)
+
+   Deployment config (model, tools, scope) lives in `defaults.yaml`, NOT in agent frontmatter.
 
 2. **Body** (in order):
    - Blockquote summary (one sentence, ends with "Shipped with forge-council.")
    - `## Role` — what the agent does
    - `## Expertise` — bullet list of domain areas
-   - `## Personality` (optional, only for Opponent, Researcher, SecurityArchitect)
+   - `## Personality` (optional, only for TheOpponent, WebResearcher, SecurityArchitect)
    - `## Instructions` — detailed steps with `###` subsections
    - `## Output Format` — markdown template in a fenced code block
    - `## Constraints` — bullet list of boundaries
@@ -179,7 +179,7 @@ source "$FORGE_LIB/frontmatter.sh"  # source, don't execute
 - **defaults.yaml**: Canonical roster and council composition. Edit only when adding/removing agents.
 - **config.yaml**: User overrides (gitignored). Same structure as defaults, only include fields you change.
 - **module.yaml**: Module metadata (name, version, description). Update `version` on releases.
-- **Model selection** lives in agent frontmatter, NOT in YAML config.
+- **Model and tool selection** lives in `defaults.yaml`, NOT in agent frontmatter.
 
 ### Git Conventions
 
@@ -199,8 +199,9 @@ docs: tighten README to match forge-reflect style
 ### Adding a New Agent
 
 1. Create `agents/YourAgent.md` with:
-   - Correct frontmatter (claude.name, claude.model, tools)
+   - Correct frontmatter (name, description, version)
    - Structured body (Role, Expertise, Instructions, Output Format, Constraints)
+   - Add deployment config to `defaults.yaml` under `agents:`
    - All constraints end with the team communication clause + honesty clause
    
 2. Add to `defaults.yaml` roster (council or standalone)
@@ -221,12 +222,10 @@ docs: tighten README to match forge-reflect style
 
 ### Updating Models or Tools
 
-1. Edit the agent markdown frontmatter (claude.model or claude.tools)
+1. Edit `defaults.yaml` under `agents:` (or `config.yaml` for local overrides)
 2. Re-run agent deployment:
    ```bash
-   bash lib/install-agents.sh agents --clean   # standalone
-   # or
-   Hooks/sync-agents.sh                 # forge-core
+   lib/bin/install-agents agents --clean   # standalone
    ```
 3. Restart Claude Code for changes to take effect
 4. Commit: `fix: update YourAgent model to [new-model]`
@@ -237,13 +236,13 @@ docs: tighten README to match forge-reflect style
 .github/
   copilot-instructions.md    # this file
 agents/
-  Developer.md               # 13 specialist agents (markdown + frontmatter)
-  Database.md
-  DevOps.md
+  SoftwareDeveloper.md       # 13 specialist agents (markdown + frontmatter)
+  DatabaseEngineer.md
+  DevOpsEngineer.md
   ForensicAgent.md
   ... (9 more)
 skills/
-  Council/
+  DebateCouncil/
     SKILL.md                 # generic 3-round debate orchestration
   DeveloperCouncil/
     SKILL.md                 # code/architecture council
@@ -270,4 +269,4 @@ GEMINI.md                     # Gemini CLI context (don't edit)
 - **VERIFY.md** is the source of truth for installation checks. Run it after any agent changes.
 - **No external test suite** — all verification is manual and runs in Claude Code.
 - **No build step** — deployment is just `bash lib/install-agents.sh agents`, which copies markdown files to `~/.claude/agents/`.
-- **Model assignments** are all in agent frontmatter (`claude.model: sonnet` or `opus`). Opponent, SecurityArchitect, and ForensicAgent use `opus`; all others use `sonnet`.
+- **Model assignments** are in `defaults.yaml` under `agents:`. TheOpponent, SecurityArchitect, and ForensicAgent use `strong` tier; all others use `fast`.
