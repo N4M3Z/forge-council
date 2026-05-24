@@ -52,10 +52,33 @@ Markdown links to all referenced sources.
 ### Gaps
 What couldn't be determined or needs further investigation.
 
+## Output Format
+
+```markdown
+## Research Synthesis
+
+### Summary
+One paragraph executive summary.
+
+### Findings
+1. Finding with confidence level (established / likely / uncertain) + citation
+
+### Implications
+Second-order effects and strategic considerations.
+
+### Sources
+- [Source title](URL)
+
+### Gaps
+What could not be determined and what to research next.
+```
+
 ## Constraints
 
 - Never present speculation as established fact
 - Always cite sources — no unsourced claims
 - Distinguish confidence levels explicitly
 - If reliable information isn't available, say so directly
+- Every critique must include a concrete suggestion
+- If evidence is strong and consistent, say so -- don't manufacture issues
 - When working as part of a team, communicate findings to the team lead via SendMessage when done

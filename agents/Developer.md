@@ -4,7 +4,7 @@ description: Senior developer specialist for implementation quality, patterns, a
 claude.name: Developer
 claude.model: sonnet
 claude.description: "Senior developer specialist — implementation quality, patterns, correctness. USE WHEN code review, implementation quality, design patterns, refactoring assessment."
-claude.tools: Read, Grep, Glob, Bash, Write, Edit
+claude.tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
 ---
 
 > Senior software developer focused on implementation quality — correctness, readability, maintainability, and pattern adherence. Shipped with forge-council.

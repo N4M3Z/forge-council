@@ -7,16 +7,17 @@
 ## Build / Install / Verify
 
 No build system, compiler, or bundler. The only "build" is deploying agent
-markdown files to `~/.claude/agents/`.
+markdown files via `SCOPE` to provider directories (`.claude/.gemini/.codex`
+for workspace, `~/.claude/~/.gemini/~/.codex` for user installs).
 
 ```bash
 make install            # install agents + skills
-make install-agents     # install agents to ~/.claude/agents/ and ~/.gemini/agents/
-make install-skills     # install skills to ~/.claude/skills, ~/.gemini/skills, ~/.codex/skills
-make install-skills-claude  # install skills only to ~/.claude/skills/
+make install-agents     # install agents using SCOPE (workspace|user|all) across Claude/Gemini/Codex
+make install-skills     # install skills using SCOPE across Claude/Gemini/Codex
+make install-skills-claude  # install Claude skills using SCOPE
 make install-skills-gemini  # install skills only to ~/.gemini/skills/
-make install-skills-codex   # install skills to ~/.codex/skills/ (+ generated specialist wrappers)
-make verify-skills      # verify skills across Claude, Gemini, Codex
+make install-skills-codex   # install Codex council skills using SCOPE
+make verify-skills      # verify skills across Claude, Gemini, and Codex
 make clean              # remove previously installed agents
 make verify             # run verification checks from VERIFY.md
 
@@ -27,6 +28,30 @@ bash lib/install-agents.sh agents --clean    # clean old agents then reinstall
 
 No automated tests, linter, or CI pipeline. Verification is manual per
 `VERIFY.md` plus `make verify`/`make verify-skills`.
+
+## Codex Experimental Features
+
+Codex `/experimental` toggles persist in `~/.codex/config.toml` under
+`[features]`.
+
+```toml
+[features]
+collab = true
+apps = true
+```
+
+Use CLI helpers to manage persistent state:
+
+```bash
+codex features enable collab
+codex features enable apps
+codex features list
+```
+
+Note: one-off CLI overrides (`--enable` / `--disable`) can temporarily override
+saved config values for that run.
+
+For Codex, specialists are used as **explicit sub-agents**. Installing agents/skills does not auto-run them. Invoke them directly in prompts (for example: `Task: Developer — [request]`, `Task: SecurityArchitect — [request]`) or through the council skills.
 
 ## Project Structure
 
@@ -68,7 +93,7 @@ claude.tools: Read, Grep, Glob, Bash, Write, Edit
 | `Read, Grep, Glob, Bash, Write, Edit` | Developer, Tester |
 | `Read, Grep, Glob, WebSearch, WebFetch` | Researcher, ProductManager, Analyst |
 
-All agents use `sonnet` except `Opponent` which uses `opus`.
+All agents use `sonnet` except `Opponent`, `SecurityArchitect`, and `ForensicAgent` which use `opus`.
 
 ### Body structure (in order)
 
@@ -124,16 +149,17 @@ fallback. Main session IS the moderator (never spawn one). Maximum roster size 7
 - Local variables in functions declared with `local`
 - Functions don't exit -- let the caller decide error handling (unless fatal)
 
-forge-lib submodule (`lib/`) provides: `frontmatter.sh` (`fm_value`, `fm_body`),
-`install-agents.sh` (`deploy_agent`, `deploy_agents_from_dir`),
-`install-skills.sh` (provider-aware skill installer),
-`generate-agent-skills.sh` (generated specialist wrapper skills for Codex),
+forge-lib submodule (`lib/`) provides: `frontmatter.sh` (`fm_value`, `fm_body`,
+`fm_list`), `install-agents.sh` (`deploy_agent`, `deploy_agents_from_dir`),
+`install-skills.sh` (provider-aware skill installer), `sync-rosters.sh`,
+`generate-agent-skills.sh` (specialist wrapper generation helper, not used by default install flow),
 `strip-front.sh` (`strip_front [--keep key1,key2] file.md`).
 
 ## YAML Configuration
 
 - `defaults.yaml` -- canonical roster. Edit only when adding/removing agents.
 - `config.yaml` -- user overrides (gitignored). Same structure, only changed fields.
+- Sidecar behavior is implemented via `defaults.yaml` + `config.yaml`.
 - `module.yaml` -- module metadata. Update `version` on releases.
 - Two-space indentation, unquoted string values, PascalCase agent names.
 - Model selection lives in agent frontmatter, NOT in YAML config.

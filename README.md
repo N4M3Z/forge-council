@@ -1,6 +1,6 @@
 # forge-council
 
-Twelve specialists. Three councils. One verdict.
+Thirteen specialists. Four councils. One verdict.
 
 A single AI agent is a single perspective. It gives you one take — its own — and misses everything outside its frame. forge-council provides specialist agents that work from independent perspectives: architecture, design, implementation, testing, security, product, research. Assemble them into councils for multi-round debates, or invoke any specialist standalone.
 
@@ -9,7 +9,7 @@ A single AI agent is a single perspective. It gives you one take — its own —
 ```bash
 git clone --recurse-submodules https://github.com/N4M3Z/forge-council.git
 cd forge-council
-make install
+make install     # Installs locally to .gemini/ by default
 make verify
 ```
 
@@ -23,25 +23,30 @@ Then in your session:
 /KnowledgeCouncil [knowledge-management topic]
 ```
 
+Or invoke any specialist standalone — no council needed:
+
+```text
+Task: Opponent — "We should rewrite the backend in Rust"
+Task: Researcher — "Best practices for rate limiting in distributed systems"
+Task: SecurityArchitect — "Threat model our authentication system"
+```
+
+> **Note**: `make install` defaults to `SCOPE=workspace` and installs into local `./.claude`, `./.gemini`, and `./.codex`. To install globally for your user, use `make install SCOPE=user`.
+
 ## Makefile Commands
 
 Primary commands:
 
 ```bash
-make install                 # install agents + skills
-make install-agents          # install agent artifacts (Claude + Gemini)
-make install-skills          # install skills (Claude + Gemini + Codex)
-make install-skills-claude   # install skills to ~/.claude/skills
-make install-skills-gemini   # install skills to ~/.gemini/skills
-make install-skills-codex    # install skills to ~/.codex/skills
-make verify                  # run verification checks
-make verify-skills           # verify skills across runtimes
+make install                 # sync rosters, then install agents + skills (SCOPE=workspace|user|all)
+make sync                    # sync council rosters from defaults.yaml to SKILL.md
+make install-agents          # install agent artifacts (uses SCOPE)
+make install-skills          # install skills for Claude, Gemini, and Codex (uses SCOPE)
+make install-skills-codex    # install native council skills (uses SCOPE)
+make verify                  # run verification checks (13 agents)
 ```
 
-Notes:
-- `install-skills-codex` generates specialist wrapper skills from `agents/*.md` during install.
-- Generated wrappers are staged in a temp directory and cleaned automatically.
-- Runtime routing is metadata-driven via each skill's `SKILL.yaml`.
+The Makefile automatically initializes and updates the `lib/` submodule if required scripts are missing.
 
 ## What it does
 
@@ -170,6 +175,14 @@ Task: Researcher — "Best practices for rate limiting in distributed systems"
 Task: SecurityArchitect — "Threat model our authentication system"
 ```
 
+## Codex Sub-Agents
+
+In Codex, specialists are used via **explicit sub-agent invocation**. They are not auto-selected just because they are installed.
+
+- Use direct invocation style: `Task: Developer — [request]`
+- Use council skills when you want multi-agent debate: `/Council`, `/DeveloperCouncil`, `/ProductCouncil`, `/KnowledgeCouncil`
+- If you do not ask for a specialist/sub-agent, the main session handles the request alone
+
 ## The debate
 
 ```
@@ -212,18 +225,19 @@ Task: SecurityArchitect — "Threat model our authentication system"
 
 | Agent | Model | Councils | Use for |
 |-------|-------|----------|---------|
-| **Developer** | sonnet | dev, generic | Implementation quality, patterns, correctness |
-| **Database** | sonnet | dev | Schema design, query performance, migrations |
-| **DevOps** | sonnet | dev | CI/CD, deployment, monitoring, reliability |
-| **DocumentationWriter** | sonnet | dev | README quality, API docs, developer experience |
-| **Tester** | sonnet | dev | Test strategy, coverage, edge cases, regression |
-| **SecurityArchitect** | sonnet | dev | Threat modeling, security policy, architectural risk |
-| **Architect** | sonnet | generic | System design, boundaries, scalability, trade-offs |
-| **Designer** | sonnet | generic, product | UX, user needs, accessibility, interaction design |
-| **ProductManager** | sonnet | product | Requirements clarity, roadmap alignment, market fit |
-| **Analyst** | sonnet | product | Success metrics, KPIs, measurement, business impact |
-| **Opponent** | opus | standalone | Devil's advocate, stress-test ideas and decisions |
-| **Researcher** | sonnet | standalone | Deep web research, multi-query synthesis, citations |
+| **Developer** | fast | dev, generic | Implementation quality, patterns, correctness |
+| **Database** | fast | dev | Schema design, query performance, migrations |
+| **DevOps** | fast | dev | CI/CD, deployment, monitoring, reliability |
+| **DocumentationWriter** | fast | dev | README quality, API docs, developer experience |
+| **Tester** | fast | dev | Test strategy, coverage, edge cases, regression |
+| **SecurityArchitect** | strong | dev | Threat modeling, security policy, architectural risk |
+| **Architect** | fast | generic | System design, boundaries, scalability, trade-offs |
+| **Designer** | fast | generic, product | UX, user needs, accessibility, interaction design |
+| **ProductManager** | fast | product | Requirements clarity, roadmap alignment, market fit |
+| **Analyst** | fast | product | Success metrics, KPIs, measurement, business impact |
+| **Opponent** | strong | standalone | Devil's advocate, stress-test ideas and decisions |
+| **Researcher** | fast | standalone | Deep web research, multi-query synthesis, citations |
+| **ForensicAgent** | strong | standalone | PII and secret detection forensic specialist |
 
 Every agent also works standalone via the Task tool. Opponent and Researcher can join any council as optional extras.
 
@@ -231,20 +245,18 @@ Every agent also works standalone via the Task tool. Opponent and Researcher can
 
 Works as a **standalone Claude Code plugin** or as a **forge-core module**. No compiled code — forge-council is pure markdown orchestration.
 
-### As a forge-core module
-
-Already registered. Deploy agents with:
-
-```bash
-Hooks/sync-agents.sh
-```
-
 ### Standalone
 
 ```bash
 git clone --recurse-submodules https://github.com/N4M3Z/forge-council.git
 cd forge-council
 make install
+```
+
+By default, this installs agents and skills into the local `.gemini/` directory of the project (`SCOPE=workspace`). To install to your user home directory (for use across all projects):
+
+```bash
+make install SCOPE=user
 ```
 
 Council mode uses agent teams (parallel spawning). Enable in settings:
@@ -284,13 +296,66 @@ Zero config required. `defaults.yaml` defines the agent roster and council compo
 
 | Setting | Default | What it controls |
 |---------|---------|-----------------|
+| `models` | fast/strong | Global model tier mappings |
+| `gemini` | tiers/whitelist | Gemini-specific models and whitelist |
+| `claude` | tiers/whitelist | Claude-specific models and whitelist |
 | `agents.council` | 10 agents | Agents available for council selection |
 | `agents.standalone` | Opponent, Researcher | Agents that operate independently |
-| `councils.developer.roles` | 6 dev specialists | Developer council roster |
-| `councils.generic.roles` | Architect, Designer, Developer, Researcher | Generic council roster |
-| `councils.product.roles` | PM, Designer, Developer, Analyst | Product council roster |
+| `councils.*` | roles list | Council rosters |
+| `{AgentName}.tools` | _(none)_ | Specialist-specific tool overrides (sidecars) |
+| `{AgentName}.scope` | _(none)_ | Specialist-specific scope override (user|workspace) |
 
-Model selection lives in agent frontmatter (`agents/*.md`). To change a model, edit the agent file and re-run the agent sync.
+### Provider-Specific Models
+
+You can define separate model tiers and whitelists for Gemini and Claude in `defaults.yaml`:
+
+```yaml
+gemini:
+  models:
+    - gemini-1.5-flash
+    - gemini-1.5-pro
+    - gemini-2.0-flash-exp
+  fast: gemini-1.5-flash
+  strong: gemini-1.5-pro
+
+claude:
+  models:
+    - sonnet
+    - opus
+    - haiku
+    - claude-3-5-sonnet-20240620
+  fast: sonnet
+  strong: opus
+```
+
+Only whitelisted models are included in the generated agent frontmatter for each provider.
+
+### Specialist Tool Overrides (Sidecars)
+
+Sidecar behavior is implemented through `defaults.yaml` (committed defaults) and optional `config.yaml` (local overrides, gitignored).
+
+Use `config.yaml` to override per-agent model tiers/tools without editing agent markdown:
+
+```yaml
+Developer:
+  model: strong
+  tools: Read, Grep, Glob, Bash, Write, Edit
+
+Tester:
+  tools:
+    - Read
+    - Grep
+    - Glob
+    - Bash
+    - Write
+    - Edit
+```
+
+After changing overrides, reinstall agents:
+
+```bash
+make install-agents SCOPE=workspace
+```
 
 ## Architecture
 
@@ -314,13 +379,13 @@ agents/
 skills/
   Council/                # Generic 3-round debate
   DeveloperCouncil/       # Developer council orchestration
-  KnowledgeCouncil/       # Knowledge management council orchestration
+  KnowledgeCouncil/       # Knowledge architecture and memory lifecycle decisions
   ProductCouncil/         # Product council orchestration
   Demo/                   # Interactive showcase
 lib/
   install-agents.sh       # Agent deployment utility (from forge-lib)
   install-skills.sh       # Multi-runtime skill installer (from forge-lib)
-  generate-agent-skills.sh # Specialist wrapper skill generation (from forge-lib)
+  generate-agent-skills.sh # Specialist wrapper generation helper (not used by default install flow)
 defaults.yaml             # Agent roster + council composition
 module.yaml               # Module metadata
 ```

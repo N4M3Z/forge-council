@@ -1,4 +1,4 @@
 name: forge-council
 version: 0.3.0
-description: Twelve specialist agents organized into three council types — developer (code review, architecture), generic (PAI-style cross-domain debate), and product (requirements, strategy). All councils use 3-round debate with user checkpoints. Two standalone specialists (Opponent, Researcher) available to any council.
+description: Thirteen specialist agents organized into four council types — developer (code review, architecture), generic (PAI-style cross-domain debate), product (requirements, strategy), and knowledge (vault organization, memory lifecycle). All councils use 3-round debate with user checkpoints. Two standalone specialists (Opponent, Researcher) and one standalone forensic agent (ForensicAgent) available to any council.
 events: []

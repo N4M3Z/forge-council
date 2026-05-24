@@ -1,7 +1,7 @@
 # forge-council default configuration.
 # Override: create config.yaml (gitignored) with only the fields you want to change.
 #
-# Model selection lives in agent frontmatter (agents/*.md).
+# defaults.yaml is authoritative for model tier and tools. Agent frontmatter provides the baseline.
 # To change a model, edit the agent file and re-run sync-agents.sh.
 
 agents:
@@ -19,6 +19,7 @@ agents:
   standalone:
     - Opponent
     - Researcher
+    - ForensicAgent
 
 councils:
   developer:
@@ -50,3 +51,79 @@ councils:
       - DocumentationWriter
       - Architect
       - Researcher
+
+# Model Tiers - mappings for semantic tiers
+models:
+  fast: sonnet
+  strong: opus
+
+# Provider-specific overrides and whitelists
+gemini:
+  models:
+    - gemini-2.0-flash
+    - gemini-2.5-flash
+    - gemini-2.5-pro
+  fast: gemini-2.0-flash
+  strong: gemini-2.5-pro
+
+claude:
+  models:
+    - sonnet
+    - opus
+    - haiku
+    - claude-sonnet-4-6
+  fast: sonnet
+  strong: opus
+
+# Agent configurations: model tier and tools
+Developer:
+  model: fast
+  tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
+Database:
+  model: fast
+  tools: Read, Grep, Glob, Bash
+DevOps:
+  model: fast
+  tools: Read, Grep, Glob, Bash
+DocumentationWriter:
+  model: fast
+  tools: Read, Grep, Glob
+Tester:
+  model: fast
+  tools: Read, Grep, Glob, Bash, Write, Edit, WebSearch
+SecurityArchitect:
+  model: strong
+  tools: Read, Grep, Glob, Bash, WebSearch
+Architect:
+  model: fast
+  tools: Read, Grep, Glob
+Designer:
+  model: fast
+  tools: Read, Grep, Glob
+ProductManager:
+  model: fast
+  tools: Read, Grep, Glob, WebSearch, WebFetch
+Analyst:
+  model: fast
+  tools: Read, Grep, Glob, WebSearch, WebFetch
+Opponent:
+  model: strong
+  tools: Read, Grep, Glob
+Researcher:
+  model: fast
+  tools: Read, Grep, Glob, WebSearch, WebFetch
+ForensicAgent:
+  model: strong
+  tools: Read, Grep, Glob, Bash, WebSearch
+
+# Skill configurations: scope overrides
+Council:
+  scope: workspace
+Demo:
+  scope: workspace
+DeveloperCouncil:
+  scope: workspace
+ProductCouncil:
+  scope: workspace
+KnowledgeCouncil:
+  scope: workspace

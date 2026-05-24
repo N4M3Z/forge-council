@@ -2,10 +2,11 @@
 
 ## What This Project Does
 
-forge-council is a pure-markdown multi-agent orchestration framework for Claude Code. It provides 12 specialist agents that run 3-round debates on topics, organized into three council types:
+forge-council is a pure-markdown multi-agent orchestration framework for Claude Code. It provides 13 specialist agents that run 3-round debates on topics, organized into four council types:
 - **DeveloperCouncil**: Code review, architecture, debugging (6 dev specialists)
 - **ProductCouncil**: Requirements, features, strategy (PM, Designer, Dev, Analyst)
 - **Council**: Cross-domain debate (Architect, Designer, Developer, Researcher)
+- **KnowledgeCouncil**: Knowledge architecture and memory lifecycle decisions
 
 No compiled code, no external runtimes — only markdown agent definitions, YAML config, shell scripts, and Claude Code skills.
 
@@ -13,27 +14,29 @@ No compiled code, no external runtimes — only markdown agent definitions, YAML
 
 ### Core Components
 
-**agents/** — 12 specialist agents (each a markdown file with YAML frontmatter + structured instructions):
+**agents/** — 13 specialist agents (each a markdown file with YAML frontmatter + structured instructions):
 - Developer, Database, DevOps, DocumentationWriter, Tester, SecurityArchitect (dev track)
 - Architect, Designer, ProductManager, Analyst (cross-domain)
 - Opponent (opus model, devil's advocate)
 - Researcher (web search + synthesis)
+- ForensicAgent (opus model, PII and secret detection)
 
 Each agent has:
 - `claude.*` frontmatter: name (PascalCase), model (sonnet/opus), description, tools list
 - Body: Role, Expertise, Instructions, Output Format, Constraints
 
-**skills/** — 4 orchestration skills (each a SKILL.md with debate flow logic):
+**skills/** — 5 orchestration skills (each a SKILL.md with debate flow logic):
 - `/Council` — generic 3-round debate
 - `/DeveloperCouncil` — specialized code/architecture council
 - `/ProductCouncil` — specialized product/strategy council
+- `/KnowledgeCouncil` — knowledge architecture and memory lifecycle
 - `/Demo` — interactive showcase
 
 Each skill is a multi-step process: gate check → parse input → select roster → spawn team → run 3 rounds → synthesize.
 
 **defaults.yaml** — canonical agent roster and council compositions. Do not edit unless adding/removing agents from the default lineup.
 
-**bin/install-agents.sh** — standalone deployment script. Reads agent markdown from `agents/` and deploys to `~/.claude/agents/`.
+**lib/install-agents.sh** — standalone deployment script (from forge-lib submodule). Reads agent markdown from `agents/` and deploys to `~/.claude/agents/`.
 
 **lib/** — git submodule pointing to forge-lib. Provides shared utilities:
 - `frontmatter.sh` — YAML frontmatter parsing
@@ -47,9 +50,9 @@ No build system, compiler, or test suite. Verification is manual and runs in Cla
 
 **Standalone** (Claude Code plugin):
 ```bash
-bash bin/install-agents.sh              # install all 12 agents
-bash bin/install-agents.sh --dry-run    # preview without writing
-bash bin/install-agents.sh --clean      # remove old agents, then install
+bash lib/install-agents.sh agents              # install all 13 agents
+bash lib/install-agents.sh agents --dry-run    # preview without writing
+bash lib/install-agents.sh agents --clean      # remove old agents, then install
 ```
 
 **As forge-core module**:
@@ -61,18 +64,18 @@ Hooks/sync-agents.sh   # uses FORGE_LIB env var set by forge-core
 
 Run the checklist in VERIFY.md:
 ```bash
-# All 12 agents deployed?
-ls ~/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher}.md
+# All 13 agents deployed?
+ls ~/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md
 
 # Each agent has synced-from header?
-grep -l "^# synced-from:" ~/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher}.md | wc -l
-# Expected: 12
+grep -l "^# synced-from:" ~/.claude/agents/{Developer,Database,DevOps,DocumentationWriter,Tester,SecurityArchitect,Architect,Designer,ProductManager,Analyst,Opponent,Researcher,ForensicAgent}.md | wc -l
+# Expected: 13
 
 # No stale Council-prefixed agents?
 ls ~/.claude/agents/ | grep -i "^Council" || echo "Clean"
 
-# 4 skills discoverable?
-ls skills/*/SKILL.md   # Expected: Council, Demo, DeveloperCouncil, ProductCouncil
+# 5 skills discoverable?
+ls skills/*/SKILL.md   # Expected: Council, Demo, DeveloperCouncil, KnowledgeCouncil, ProductCouncil
 
 # Interactive check in Claude Code:
 /Demo agents
@@ -204,7 +207,7 @@ docs: tighten README to match forge-reflect style
 
 3. Update `INSTALL.md` agent table if it's a major agent (optional for niche specialists)
 
-4. Run the install script to test: `bash bin/install-agents.sh --dry-run`
+4. Run the install script to test: `bash lib/install-agents.sh agents --dry-run`
 
 5. Commit with conventional message: `feat: add YourAgent for [domain]`
 
@@ -221,7 +224,7 @@ docs: tighten README to match forge-reflect style
 1. Edit the agent markdown frontmatter (claude.model or claude.tools)
 2. Re-run agent deployment:
    ```bash
-   bash bin/install-agents.sh --clean   # standalone
+   bash lib/install-agents.sh agents --clean   # standalone
    # or
    Hooks/sync-agents.sh                 # forge-core
    ```
@@ -234,9 +237,10 @@ docs: tighten README to match forge-reflect style
 .github/
   copilot-instructions.md    # this file
 agents/
-  Developer.md               # 12 specialist agents (markdown + frontmatter)
+  Developer.md               # 13 specialist agents (markdown + frontmatter)
   Database.md
   DevOps.md
+  ForensicAgent.md
   ... (9 more)
 skills/
   Council/
@@ -245,12 +249,12 @@ skills/
     SKILL.md                 # code/architecture council
   ProductCouncil/
     SKILL.md                 # product/strategy council
+  KnowledgeCouncil/
+    SKILL.md                 # knowledge architecture and memory lifecycle
   Demo/
     SKILL.md                 # interactive showcase
-bin/
-  install-agents.sh          # standalone deployment script
 lib/
-  (forge-lib submodule)      # shared utilities
+  (forge-lib submodule)      # shared utilities (install-agents.sh, install-skills.sh, etc.)
 defaults.yaml                # canonical agent roster + council configs
 module.yaml                  # module metadata (name, version)
 README.md                     # user-facing overview
@@ -265,5 +269,5 @@ GEMINI.md                     # Gemini CLI context (don't edit)
 - **Do not edit** AGENTS.md or GEMINI.md directly — these are autogenerated by `/Init` and `/Update` commands in Claude Code.
 - **VERIFY.md** is the source of truth for installation checks. Run it after any agent changes.
 - **No external test suite** — all verification is manual and runs in Claude Code.
-- **No build step** — deployment is just `bash bin/install-agents.sh`, which copies markdown files to `~/.claude/agents/`.
-- **Model assignments** are all in agent frontmatter (`claude.model: sonnet` or `opus`). Only `Opponent` uses `opus`; all others use `sonnet`.
+- **No build step** — deployment is just `bash lib/install-agents.sh agents`, which copies markdown files to `~/.claude/agents/`.
+- **Model assignments** are all in agent frontmatter (`claude.model: sonnet` or `opus`). Opponent, SecurityArchitect, and ForensicAgent use `opus`; all others use `sonnet`.
