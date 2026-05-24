@@ -21,9 +21,9 @@ make lint             # shellcheck all scripts
 Standalone agent deployment without Make:
 
 ```bash
-bash lib/install-agents.sh agents              # install all agents
-bash lib/install-agents.sh agents --dry-run    # preview
-bash lib/install-agents.sh agents --clean      # clean + reinstall
+lib/bin/install-agents agents              # install all agents
+lib/bin/install-agents agents --dry-run    # preview
+lib/bin/install-agents agents --clean      # clean + reinstall
 ```
 
 No automated tests or CI. Verification is manual per `VERIFY.md` plus `make verify`.
@@ -33,7 +33,7 @@ No automated tests or CI. Verification is manual per `VERIFY.md` plus `make veri
 ```
 agents/           13 specialist markdown files (frontmatter + structured body)
 skills/           5 skill dirs: Council, DeveloperCouncil, ProductCouncil, KnowledgeCouncil, Demo
-lib/              git submodule -> forge-lib (shell utilities for deployment)
+lib/              git submodule -> forge-lib (Rust binaries for deployment + validation)
 defaults.yaml     canonical agent roster + council compositions
 config.yaml       user overrides (gitignored), same structure as defaults
 module.yaml       module metadata (name, version)
@@ -77,7 +77,7 @@ All agents use `sonnet` except Opponent which uses `opus`. Model selection lives
 
 ### forge-lib Submodule (`lib/`)
 
-Git submodule from `forge-lib`. Provides: `frontmatter.sh` (fm_value, fm_body), `install-agents.sh` (deploy_agent, deploy_agents_from_dir), `install-skills.sh` (provider-aware installer), `generate-agent-skills.sh` (Codex specialist wrapper generation), `strip-front.sh`. If missing: `git submodule update --init`.
+Git submodule from `forge-lib`. Provides Rust binaries: `install-agents` (multi-provider agent deployment), `install-skills` (provider-aware skill installer), `strip-front` (frontmatter stripping), `validate-module` (convention test suite). Built via `make -C lib build`. If missing: `git submodule update --init`.
 
 ## Conventions
 
@@ -106,8 +106,8 @@ Conventional Commits: `type: description`. Lowercase, no trailing period, no sco
 
 ## Modification Workflows
 
-**Add agent**: Create `agents/Name.md` with frontmatter + structured body -> add to `defaults.yaml` roster -> `bash lib/install-agents.sh agents --dry-run` -> commit `feat: add Name for [domain]`.
+**Add agent**: Create `agents/Name.md` with frontmatter + structured body -> add to `defaults.yaml` roster -> `lib/bin/install-agents agents --dry-run` -> commit `feat: add Name for [domain]`.
 
 **Modify skill**: Edit `skills/Name/SKILL.md` + `SKILL.yaml` -> keep step numbering intact -> if changing roster, update both skill and `defaults.yaml` -> test with `/Demo`.
 
-**Update model/tools**: Edit agent frontmatter -> `bash lib/install-agents.sh agents --clean` -> restart session.
+**Update model/tools**: Edit agent frontmatter -> `lib/bin/install-agents agents --clean` -> restart session.
