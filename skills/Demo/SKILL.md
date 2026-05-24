@@ -2,7 +2,6 @@
 name: Demo
 version: 0.1.0
 description: "Showcase forge-council — demonstrate the agent roster, council flow, and standalone specialists. USE WHEN demo, showcase, show agents, what can forge-council do."
-argument-hint: "[optional: 'council' for live council demo, 'agents' for roster walkthrough]"
 ---
 
 # forge-council Demo

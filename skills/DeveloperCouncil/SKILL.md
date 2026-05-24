@@ -2,7 +2,6 @@
 name: DeveloperCouncil
 version: 0.1.0
 description: "Convene a developer council — 3-round debate for code review, architecture, and debugging. USE WHEN multi-perspective code review, architecture decisions, team-based problem solving, developer council."
-argument-hint: "[task description, PR reference, file paths, or architectural question] [autonomous|interactive|quick]"
 ---
 
 # Developer Council

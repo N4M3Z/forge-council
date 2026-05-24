@@ -2,7 +2,6 @@
 name: ProductCouncil
 version: 0.2.0
 description: "Convene a product council — multi-agent review of requirements, features, and product strategy. USE WHEN requirements review, feature scoping, product decisions, go/no-go, payments review."
-argument-hint: "[requirements doc, feature spec, product question, or strategy decision] [autonomous|interactive|quick]"
 ---
 
 # Product Council
@@ -64,7 +63,7 @@ Collect all specialist assessments. Wait for all to report.
 
 **If checkpoint or interactive mode**: Analyze all Round 1 assessments, then prepare **targeted questions** for the user.
 
-#### Step 4.1: Prepare Targeted Questions
+### Step 4.1: Prepare Targeted Questions
 
 Review the Round 1 assessments and identify 3-4 questions whose answers would **eliminate at least one option or confirm a constraint**. Questions must be:
 - **Closed or constrained** — not "what do you think?" but "is X partial, complete, or not started?"
@@ -77,7 +76,7 @@ Examples of good checkpoint questions:
 - "Which of these is the #1 priority: speed, cost, or flexibility?"
 - "Are both vendors currently active, or is one being phased out?"
 
-#### Step 4.2: Present Round 1 + Ask Questions
+### Step 4.2: Present Round 1 + Ask Questions
 
 Present the Round 1 summaries, then ask via **AskUserQuestion** with up to 4 targeted questions. Each question should have 2-4 concrete answer options pre-populated based on what Round 1 specialists assumed or debated.
 

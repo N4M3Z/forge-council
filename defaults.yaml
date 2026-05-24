@@ -65,38 +65,51 @@ agents:
         tools: Read, Grep, Glob, Bash, WebSearch
 
 skills:
-    DeveloperCouncil:
-        scope: workspace
-        roles:
-            - SoftwareDeveloper
-            - DatabaseEngineer
-            - DevOpsEngineer
-            - DocumentationWriter
-            - QaTester
-            - SecurityArchitect
+    claude:
+        DebateCouncil:
+            scope: workspace
+            roles:
+                - SystemArchitect
+                - UxDesigner
+                - SoftwareDeveloper
+                - WebResearcher
+        Demo:
+        DeveloperCouncil:
+            scope: workspace
+            roles:
+                - SoftwareDeveloper
+                - DatabaseEngineer
+                - DevOpsEngineer
+                - DocumentationWriter
+                - QaTester
+                - SecurityArchitect
+        KnowledgeCouncil:
+            scope: workspace
+            roles:
+                - DocumentationWriter
+                - SystemArchitect
+                - WebResearcher
+        ProductCouncil:
+            scope: workspace
+            roles:
+                - ProductManager
+                - UxDesigner
+                - SoftwareDeveloper
+                - DataAnalyst
 
-    DebateCouncil:
-        scope: workspace
-        roles:
-            - SystemArchitect
-            - UxDesigner
-            - SoftwareDeveloper
-            - WebResearcher
+    gemini:
+        DebateCouncil:
+        Demo:
+        DeveloperCouncil:
+        KnowledgeCouncil:
+        ProductCouncil:
 
-    ProductCouncil:
-        scope: workspace
-        roles:
-            - ProductManager
-            - UxDesigner
-            - SoftwareDeveloper
-            - DataAnalyst
-
-    KnowledgeCouncil:
-        scope: workspace
-        roles:
-            - DocumentationWriter
-            - SystemArchitect
-            - WebResearcher
+    codex:
+        DebateCouncil:
+        Demo:
+        DeveloperCouncil:
+        KnowledgeCouncil:
+        ProductCouncil:
 
 providers:
     gemini:

@@ -1,0 +1,9 @@
+frontmatter:
+    fields:
+        - name: name
+        - name: description
+        - name: version
+
+heading_rules:
+    no_skip_levels: true
+    max_depth: 3

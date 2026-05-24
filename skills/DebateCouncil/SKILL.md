@@ -2,7 +2,6 @@
 name: DebateCouncil
 version: 0.1.0
 description: "Convene a PAI-style council — 3-round debate where specialists challenge each other. USE WHEN multi-perspective discussion, architecture debate, strategy decisions, cross-domain analysis."
-argument-hint: "[topic or question to debate] [with security|with opponent|with docs] [autonomous|interactive|quick]"
 ---
 
 # DebateCouncil

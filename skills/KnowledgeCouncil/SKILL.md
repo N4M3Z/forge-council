@@ -2,7 +2,6 @@
 name: KnowledgeCouncil
 version: 0.1.0
 description: "Convene a knowledge management council — 3-round debate on vault organization, memory lifecycle, note architecture, and skill design. USE WHEN knowledge triage, memory promotion, vault organization, note lifecycle, idea graduation, archive decisions."
-argument-hint: "[topic or question to debate] [with vault|with dev|with opponent] [autonomous|interactive|quick]"
 ---
 
 # KnowledgeCouncil
