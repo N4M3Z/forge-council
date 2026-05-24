@@ -1,0 +1,2 @@
+claude:
+    argument-hint: "[job posting file, role description, or hiring question] [autonomous|interactive|quick]"

@@ -64,6 +64,30 @@ agents:
         model: strong
         tools: Read, Grep, Glob, Bash, WebSearch
 
+    TalentAcquisition:
+        model: fast
+        tools: Read, Grep, Glob, WebSearch, WebFetch
+
+    HiringManager:
+        model: fast
+        tools: Read, Grep, Glob
+
+    CompensationAnalyst:
+        model: fast
+        tools: Read, Grep, Glob, WebSearch, WebFetch
+
+    ExecutiveAdvisor:
+        model: strong
+        tools: Read, Grep, Glob
+
+    CzechLawAdvisor:
+        model: strong
+        tools: Read, Grep, Glob, WebSearch
+
+    IndustryExpert:
+        model: fast
+        tools: Read, Grep, Glob, WebSearch, WebFetch
+
 skills:
     claude:
         DebateCouncil:
@@ -96,6 +120,16 @@ skills:
                 - UxDesigner
                 - SoftwareDeveloper
                 - DataAnalyst
+        HiringCouncil:
+            scope: workspace
+            roles:
+                - TalentAcquisition
+                - HiringManager
+                - CompensationAnalyst
+                - ExecutiveAdvisor
+                - CzechLawAdvisor
+                - IndustryExpert
+                - TheOpponent
 
     gemini:
         DebateCouncil:
@@ -103,6 +137,7 @@ skills:
         DeveloperCouncil:
         KnowledgeCouncil:
         ProductCouncil:
+        HiringCouncil:
 
     codex:
         DebateCouncil:
@@ -110,6 +145,7 @@ skills:
         DeveloperCouncil:
         KnowledgeCouncil:
         ProductCouncil:
+        HiringCouncil:
 
 providers:
     gemini:
