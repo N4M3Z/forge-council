@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `skills/HarnessCouncil/` -- convene independent AI CLI harnesses (codex, agy, grok, Lumo) plus a Fable subagent on one artifact and synthesize by cross-vendor agreement; documents each CLI's headless invocation and quirks, and opens with a `!` availability injection listing installed council members
 - `rules/AgentTeams.md` -- documents the `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` gate, mandatory teardown protocol, and the known upstream agent-team bugs (#49671, #53160, #55824, #59717).
 - Step 0 gate check inline in every council skill (DebateCouncil, DeveloperCouncil, ProductCouncil, KnowledgeCouncil, HiringCouncil) -- replaces the previous `@AgentTeams.md` injection.
 - `.githooks/pre-commit` with `prek` / `forge validate` cascade and hash-verified `validate.sh` fallback (canonical source: forge-cli `templates/init/.githooks/pre-commit`).
