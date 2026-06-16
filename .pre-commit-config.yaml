@@ -15,7 +15,7 @@ repos:
 
           - id: gitleaks
             name: gitleaks
-            entry: gitleaks detect --no-banner --no-git -s .
+            entry: gitleaks detect --no-banner
             language: system
             pass_filenames: false
 

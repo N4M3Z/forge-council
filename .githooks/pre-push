@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# forge module pre-push hook — runs the pre-push-staged gates (gitleaks, semgrep).
+# Canonical source: https://github.com/N4M3Z/forge-cli/blob/main/templates/init/.githooks/pre-push
+
+SCRIPT_URL="https://raw.githubusercontent.com/N4M3Z/forge-cli/main/scripts/validate.sh"
+SCRIPT_SHA="55998b60a7e972c09c9bcc9767d675b95e011e58309c69849b44fec994909d0b"
+
+if command -v prek >/dev/null 2>&1; then
+    prek run --all-files --stage pre-push
+elif command -v forge >/dev/null 2>&1; then
+    forge validate
+else
+    echo ""
+    echo "  ⚠  Neither prek nor forge found — using validate.sh fallback"
+    echo "     Install: cargo install --locked forge-cli   or   cargo binstall prek"
+    echo ""
+
+    tmpdir=$(mktemp -d)
+    trap 'rm -rf "$tmpdir"' EXIT
+
+    curl --max-time 30 -sfL "$SCRIPT_URL" -o "$tmpdir/validate.sh" 2>/dev/null \
+        || { echo "validate.sh unreachable — install forge-cli or check connectivity"; exit 1; }
+
+    actual=$(sha256sum "$tmpdir/validate.sh" 2>/dev/null || shasum -a 256 "$tmpdir/validate.sh")
+    actual=${actual%% *}
+
+    if [ "$actual" != "$SCRIPT_SHA" ]; then
+        echo "validate.sh hash mismatch (expected $SCRIPT_SHA, got $actual)"
+        echo "  update SCRIPT_SHA after verifying the new script"
+        exit 1
+    fi
+
+    bash "$tmpdir/validate.sh" .
+fi
