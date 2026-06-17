@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# forge jj push gate. jj runs no git hooks, so the pre-push gate is relocated here.
+# Wired by `make install` as the repo-local jj `push` alias (absolute path so it
+# resolves from any working directory):
+#   jj config set --repo aliases.push '["util","exec","--","bash","<repo>/.githooks/jj-push"]'
+# Runs the same pre-push gate as git's pre-push hook, then hands off to jj git push.
+# Canonical source: https://github.com/N4M3Z/forge-cli/blob/main/templates/init/.githooks/jj-push
+
+# cd to the repo root so prek finds .pre-commit-config.yaml regardless of cwd.
+cd "$(jj workspace root 2>/dev/null || git rev-parse --show-toplevel 2>/dev/null || dirname "$0")"
+
+if command -v prek >/dev/null 2>&1; then
+    prek run --all-files --stage pre-push
+elif command -v forge >/dev/null 2>&1; then
+    forge validate
+fi
+
+exec jj git push "$@"
