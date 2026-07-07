@@ -85,3 +85,47 @@ git config core.hooksPath
 Should return `.githooks`.
 
 EXECUTE NOW: Complete the above TODO list.
+
+## Optional: StagedDelivery reinforcement hook
+
+The `StagedDelivery` skill works on its own. Its per-prompt reinforcement is an
+optional `UserPromptSubmit` hook, wired by hand — `make install` does not deploy
+runtime hooks. Skip this section unless you want the loop restated each prompt.
+
+Save the hook script (e.g. to `~/.config/staged-delivery/reinforce.sh`) and
+`chmod +x` it:
+
+```bash
+#!/usr/bin/env bash
+# UserPromptSubmit hook: reinforce the StagedDelivery loop while the session is armed.
+# Opt-in — silent unless ~/.config/staged-delivery/armed exists (the skill arms it;
+# "stop staged delivery" disarms). Always exits 0; communicates via stdout JSON only.
+set -u
+ARMED="${HOME}/.config/staged-delivery/armed"
+[ -f "$ARMED" ] || exit 0
+cat <<'JSON'
+{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"STAGED DELIVERY ACTIVE. For substantive work run the loop: (1) council — 2-4 relevant specialists in parallel, code-grounded, cite file:line; (2) opponent gate (TheOpponent) — verify vs code, kill gold-plating, output a staged plan + the single riskiest thing; (3) user/file decision gate — never auto-pick scope; (4) build staged — branch per feature, commit per stage, TaskCreate per stage; (5) verify suites separately + self-checks, sequential DB runs only; (6) ponytail the diff; (7) land — CHANGELOG, ff-merge, honest caveats; append leftovers to DEFERRED.md. Assume caveman (terse prose) and ponytail (lazy, shortest diff) are active. Trivial edits skip the loop. 'stop staged delivery' to disarm."}}
+JSON
+exit 0
+```
+
+Then add to `~/.claude/settings.json`, pointing at the absolute path where you saved it:
+
+```json
+{
+    "hooks": {
+        "UserPromptSubmit": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash \"$HOME/.config/staged-delivery/reinforce.sh\"",
+                        "timeout": 5
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
