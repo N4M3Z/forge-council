@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- `skills/ProjectInit/SKILL.md` -- deep scoping interview that establishes a new project: local git tracking, distilled `CLAUDE.md`, project-scoped `.claude/rules/` every subagent inherits, and a `DEFERRED.md` seed. Includes a `refresh` mode that re-interviews only drifted areas. StagedDelivery is the natural follow-up loop; both stand alone.
 - `skills/StagedDelivery/SKILL.md` -- council-first plan/build/verify loop: routes scope to DeveloperCouncil/ProductCouncil/KnowledgeCouncil (individual specialists only when no council fits), a conditional opponent gate, a user/file decision gate, and a deferred-menu ledger. Stays in-module; forge-core skills are optional. Optional per-prompt reinforcement hook documented for manual wiring in `INSTALL.md` (not deployed by forge).
 - `rules/AgentTeams.md` -- documents the `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` gate, mandatory teardown protocol, and the known upstream agent-team bugs (#49671, #53160, #55824, #59717).
 - Step 0 gate check inline in every council skill (DebateCouncil, DeveloperCouncil, ProductCouncil, KnowledgeCouncil, HiringCouncil) -- replaces the previous `@AgentTeams.md` injection.
