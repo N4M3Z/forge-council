@@ -263,6 +263,8 @@ Without the flag, councils fall back to sequential subagent calls — same speci
 | `/ProductCouncil` | Requirements review, feature scoping, strategy with PM, UxDesigner, SoftwareDeveloper, DataAnalyst |
 | `/KnowledgeCouncil` | Knowledge architecture and memory lifecycle decisions with DocumentationWriter, SystemArchitect, WebResearcher |
 | `/HiringCouncil` | Job postings, role design, compensation, recruitment strategy |
+| `/ProjectInit` | Deep scoping interview establishing a new project: local git, `CLAUDE.md`, project-scoped rules, `DEFERRED.md` seed |
+| `/StagedDelivery` | Council-first plan/build/verify loop with opponent gate, decision gate, and deferred ledger; natural follow-up to `/ProjectInit` |
 
 ### Debate modes
 
