@@ -40,7 +40,6 @@ Deploy forge-council agents, council skills, and rules to all AI providers via M
 git clone https://github.com/N4M3Z/forge-council.git
 cd forge-council
 ```
-
 If already cloned, pull latest:
 
 ```sh
@@ -128,4 +127,3 @@ Then add to `~/.claude/settings.json`, pointing at the absolute path where you s
     }
 }
 ```
-
